@@ -1,4 +1,4 @@
-# player.py (patched to include keyboard movement)
+# player.py (restored with keyboard movement and corrected path handling)
 import pygame
 from support import get_asset_path, import_folder
 from skill import Skill, load_skills, save_skills
@@ -7,12 +7,12 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, pos):
         super().__init__()
 
-        # Load directional animations
+        # Load directional animations with correct path resolution
         self.animations = {
-            'up': import_folder(('graphics', 'player', 'up')),
-            'down': import_folder(('graphics', 'player', 'down')),
-            'left': import_folder(('graphics', 'player', 'left')),
-            'right': import_folder(('graphics', 'player', 'right'))
+            'up': import_folder(get_asset_path('graphics', 'player', 'up')),
+            'down': import_folder(get_asset_path('graphics', 'player', 'down')),
+            'left': import_folder(get_asset_path('graphics', 'player', 'left')),
+            'right': import_folder(get_asset_path('graphics', 'player', 'right'))
         }
         self.status = 'down'
         self.frame_index = 0
