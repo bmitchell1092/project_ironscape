@@ -25,7 +25,7 @@ class YSortCameraGroup(pygame.sprite.Group):
                 self.display_surface.blit(sprite.image, offset_pos)
 
         # 2. Draw everything else, sorted by centery
-        for sprite in sorted(self.sprites(), key=lambda sprite: sprite.rect.centery):
+        for sprite in sorted(self.sprites(), key=lambda sprite: (getattr(sprite, 'z_index', 0), sprite.rect.centery)):
             if not (hasattr(sprite, 'sprite_type') and sprite.sprite_type == 'floor'):
                 offset_pos = sprite.rect.topleft - self.offset
                 self.display_surface.blit(sprite.image, offset_pos)

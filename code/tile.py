@@ -1,4 +1,4 @@
-import pygame 
+import pygame
 from settings import *
 
 HITBOX_OFFSET = {
@@ -7,7 +7,15 @@ HITBOX_OFFSET = {
     'grass': -10,
     'invisible': 0,
     'floor': 0,
-    'decor': 0  # Added to support legacy map layers
+    'decor': 0
+}
+
+Z_INDEX = {
+    'floor': 0,
+    'decor': 1,
+    'player': 2,
+    'grass': 3,
+    'object': 4
 }
 
 class Tile(pygame.sprite.Sprite):
@@ -15,7 +23,14 @@ class Tile(pygame.sprite.Sprite):
         super().__init__(groups)
         self.sprite_type = sprite_type
         self.image = surface if surface else pygame.Surface((TILESIZE, TILESIZE))
-        self.rect = self.image.get_rect(topleft=(pos[0], pos[1] - TILESIZE) if sprite_type == 'object' else pos)
+
+        if sprite_type == 'object':
+            self.rect = self.image.get_rect(topleft=(pos[0], pos[1] - TILESIZE))
+        else:
+            self.rect = self.image.get_rect(topleft=pos)
+
         y_offset = HITBOX_OFFSET.get(sprite_type, 0)
         self.hitbox = self.rect.inflate(0, y_offset)
+        self.z_index = Z_INDEX.get(sprite_type, 1)
+
 

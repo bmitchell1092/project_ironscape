@@ -3,7 +3,7 @@
   "Defense": { "name": "Defense", "xp": 0 },
   "Hitpoints": { "name": "Hitpoints", "xp": 0 },
   "Magic": { "name": "Magic", "xp": 0 },
-  "Agility": { "name": "Agility", "xp": 0 },
+  "Agility": { "name": "Agility", "xp": 5000000 },
   "Herblore": { "name": "Herblore", "xp": 0 },
   "Cooking": { "name": "Cooking", "xp": 0 }
 }
