@@ -23,6 +23,11 @@ class Game:
                     mouse_pos = pygame.mouse.get_pos()
                     self.level.ui.handle_mouse_click(mouse_pos)
 
+                # Handle mouse motion for UI skill hover
+                if event.type == pygame.MOUSEMOTION:
+                    self.level.ui.handle_mouse_motion(event.pos)
+   
+
             self.screen.fill('black')
             self.level.run()
             pygame.display.update()

@@ -1,4 +1,4 @@
-# skill.py (new file)
+# skill.py (updated with get_next_level_xp for hover support)
 import json
 
 class Skill:
@@ -33,6 +33,11 @@ class Skill:
             return 0
         return self.XP_TABLE[self.level] - self.xp
 
+    def get_next_level_xp(self):
+        if self.level >= 99:
+            return self.XP_TABLE[98]  # Final threshold to reach 99
+        return self.XP_TABLE[self.level]
+
     def to_dict(self):
         return {"name": self.name, "xp": self.xp}
 
@@ -53,4 +58,3 @@ def load_skills(filepath="data/skills.json"):
             return {name: Skill.from_dict(skill_data) for name, skill_data in data.items()}
     except FileNotFoundError:
         return {}
-

@@ -8,6 +8,7 @@ class UI:
         self.display_surface = pygame.display.get_surface()
         self.player = player
         self.font = pygame.font.Font(None, 24)
+        self.large_font = pygame.font.Font(None, 28)
 
         self.health_bar_rect = pygame.Rect(10, 10, 200, 20)
         self.mana_bar_rect = pygame.Rect(10, 40, 150, 15)
@@ -24,11 +25,13 @@ class UI:
         }
 
         # UI layout
-        self.icon_size = 32
-        self.padding = 6
+        self.icon_size = 40
+        self.padding_x = 20
+        self.padding_y = 10
         self.columns = 3
         self.bg_color = (20, 20, 20)
         self.bg_alpha = 220
+        self.hovered_skill = None
 
         # Tabs and tab state
         self.tabs = ["Skills", "Quests", "Inventory", "Equipment", "Settings"]
@@ -41,6 +44,7 @@ class UI:
             "Settings": pygame.image.load(get_asset_path("graphics", "icons", "settings_tab.png")).convert_alpha()
         }
         self.tab_rects = {}
+        self.skill_icon_rects = {}
 
     def display(self):
         self.draw_health_bar()
@@ -58,15 +62,15 @@ class UI:
     def draw_mana_bar(self):
         ratio = 0.6  # Placeholder
         pygame.draw.rect(self.display_surface, UI_BG_COLOR, self.mana_bar_rect)
-        pygame.draw.rect(self.display_surface, MANA_COLOR,
+        pygame.draw.rect(self.display_surface, ENERGY_COLOR,
                          (self.mana_bar_rect.x, self.mana_bar_rect.y,
                           self.mana_bar_rect.width * ratio, self.mana_bar_rect.height))
         pygame.draw.rect(self.display_surface, TEXT_COLOR, self.mana_bar_rect, 2)
 
     def draw_overlay(self):
         surface = self.display_surface
-        width = 260
-        height = 260
+        width = 300
+        height = 300
         margin = 10
 
         x = WIDTH - width - margin
@@ -77,10 +81,14 @@ class UI:
         surface.blit(panel, (x, y))
 
         self.draw_tabs(x, y, width)
+
+        # Draw separator line
+        pygame.draw.line(surface, (100, 100, 100), (x + 10, y + 50), (x + width - 10, y + 50), 2)
+
         if self.active_tab == "Skills":
-            self.draw_skills_grid(x, y + 50)
+            self.draw_skills_grid(x, y + 60)
         else:
-            self.draw_placeholder_panel(x, y + 50)
+            self.draw_placeholder_panel(x, y + 60)
 
     def draw_tabs(self, panel_x, panel_y, panel_width):
         tab_width = 40
@@ -102,24 +110,32 @@ class UI:
 
     def draw_skills_grid(self, x, y):
         skills = list(self.player.skills.items())[:9]
+        self.skill_icon_rects.clear()
 
         for idx, (name, skill) in enumerate(skills):
             row = idx // self.columns
             col = idx % self.columns
 
-            icon_x = x + col * (self.icon_size + self.padding * 2) + self.padding + 10
-            icon_y = y + row * (self.icon_size + self.padding * 2)
+            icon_x = x + col * (self.icon_size + self.padding_x * 2) + self.padding_x
+            icon_y = y + row * (self.icon_size + self.padding_y * 2)
 
             icon = pygame.transform.scale(self.skill_icons[name], (self.icon_size, self.icon_size))
-            self.display_surface.blit(icon, (icon_x, icon_y))
+            icon_rect = self.display_surface.blit(icon, (icon_x, icon_y))
+            self.skill_icon_rects[name] = icon_rect
 
-            level = self.font.render(str(skill.level), True, (255, 255, 255))
-            level_rect = level.get_rect(midleft=(icon_x + self.icon_size + 4, icon_y + self.icon_size // 2))
+            level = self.large_font.render(str(skill.level), True, (255, 255, 255))
+            level_rect = level.get_rect(midleft=(icon_x + self.icon_size + 6, icon_y + self.icon_size // 2))
             self.display_surface.blit(level, level_rect)
 
-        hover_box = pygame.Rect(x + 10, y + 140, 240, 30)
+        hover_box = pygame.Rect(x + 10, y + 180, 280, 30)
         pygame.draw.rect(self.display_surface, (30, 30, 30), hover_box, border_radius=6)
-        text = self.font.render("Exp: ___   Next level: ___", True, (255, 255, 255))
+        if self.hovered_skill:
+            skill = self.player.skills[self.hovered_skill]
+            next_level_xp = skill.get_next_level_xp()
+            exp_text = f"Exp: {skill.xp}   Exp to lvl: {next_level_xp - skill.xp}"
+        else:
+            exp_text = "Exp: _____   Exp to lvl: _____"
+        text = self.font.render(exp_text, True, (255, 255, 255))
         self.display_surface.blit(text, (hover_box.x + 10, hover_box.y + 6))
 
     def draw_placeholder_panel(self, x, y):
@@ -131,4 +147,11 @@ class UI:
             if rect.collidepoint(mouse_pos):
                 self.active_tab = tab
                 print(f"Switched to tab: {tab}")
+                break
+
+    def handle_mouse_motion(self, mouse_pos):
+        self.hovered_skill = None
+        for skill, rect in self.skill_icon_rects.items():
+            if rect.collidepoint(mouse_pos):
+                self.hovered_skill = skill
                 break
