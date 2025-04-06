@@ -1,0 +1,25 @@
+{
+    "last_updated": "2025-04-01",
+    "quests": {
+        "Strength": {
+            "description": "Lift 10,000 lbs this week",
+            "completed": true,
+            "xp_reward": 3000
+        },
+        "Cooking": {
+            "description": "Prep 5 balanced meals",
+            "completed": false,
+            "xp_reward": 2000
+        },
+        "Agility": {
+            "description": "Climb 3 sessions or complete one new route",
+            "completed": false,
+            "xp_reward": 3500
+        },
+        "Hitpoints": {
+            "description": "Run 15km or 3x cardio workouts",
+            "completed": false,
+            "xp_reward": 4000
+        }
+    }
+}
