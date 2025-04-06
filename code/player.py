@@ -1,13 +1,12 @@
-# player.py (restored with keyboard movement and corrected path handling)
+# player.py (collision-aware movement)
 import pygame
 from support import get_asset_path, import_folder
 from skill import Skill, load_skills, save_skills
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos):
+    def __init__(self, pos, obstacle_sprites):
         super().__init__()
 
-        # Load directional animations with correct path resolution
         self.animations = {
             'up': import_folder(get_asset_path('graphics', 'player', 'up')),
             'down': import_folder(get_asset_path('graphics', 'player', 'down')),
@@ -18,9 +17,9 @@ class Player(pygame.sprite.Sprite):
         self.frame_index = 0
         self.image = self.animations[self.status][self.frame_index]
         self.rect = self.image.get_rect(topleft=pos)
-        self.z_index = 2
 
         self.direction = pygame.math.Vector2()
+        self.obstacle_sprites = obstacle_sprites
 
         # Load or initialize skills
         self.skills = load_skills()
@@ -67,8 +66,27 @@ class Player(pygame.sprite.Sprite):
         if self.direction.magnitude() != 0:
             self.direction = self.direction.normalize()
 
+        # Horizontal
         self.rect.x += self.direction.x * self.speed
+        self.collision('horizontal')
+
+        # Vertical
         self.rect.y += self.direction.y * self.speed
+        self.collision('vertical')
+
+    def collision(self, direction):
+        for sprite in self.obstacle_sprites:
+            if sprite.hitbox.colliderect(self.rect):
+                if direction == 'horizontal':
+                    if self.direction.x > 0:
+                        self.rect.right = sprite.hitbox.left
+                    elif self.direction.x < 0:
+                        self.rect.left = sprite.hitbox.right
+                elif direction == 'vertical':
+                    if self.direction.y > 0:
+                        self.rect.bottom = sprite.hitbox.top
+                    elif self.direction.y < 0:
+                        self.rect.top = sprite.hitbox.bottom
 
     def update(self):
         self.input()
@@ -88,3 +106,4 @@ class Player(pygame.sprite.Sprite):
             save_skills(self.skills)
         else:
             print(f"Skill '{skill_name}' does not exist!")
+
