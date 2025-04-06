@@ -1,10 +1,11 @@
-# level.py (finalized with correct rendering order and collision)
+# level.py (updated with enemy spawn support from map_Enemies.csv)
 import pygame
 from settings import *
 from tile import Tile
 from player import Player
 from ui import UI
 from camera import YSortCameraGroup
+from enemy import Enemy
 from support import import_csv_layout, cut_graphics_from_sheet, get_asset_path
 import os
 
@@ -15,9 +16,10 @@ class Level:
         # Sprite groups
         self.visible_sprites = YSortCameraGroup()
         self.obstacle_sprites = pygame.sprite.Group()
+        self.enemy_sprites = pygame.sprite.Group()
 
         # Load player
-        self.player = Player((1000, 1000), self.obstacle_sprites)
+        self.player = Player((1000, 1000), self.obstacle_sprites,self.visible_sprites)
         self.visible_sprites.add(self.player)
         self.visible_sprites.set_camera_target(self.player)
         self.ui = UI(self.player)
@@ -32,12 +34,15 @@ class Level:
             'objects': get_asset_path('map', 'map_Objects.csv'),
             'grass': get_asset_path('map', 'map_Grass.csv'),
             'details': get_asset_path('map', 'map_Details.csv'),
+            'enemies': get_asset_path('map', 'map_Enemies.csv')
         }
 
         graphics = {
             'floor': cut_graphics_from_sheet(get_asset_path('graphics', 'tilemap', 'Floor.png'), TILESIZE),
             'details': cut_graphics_from_sheet(get_asset_path('graphics', 'tilemap', 'details.png'), TILESIZE),
         }
+
+        MONSTER_TYPES = list(monster_data.keys())
 
         for layer, path in layout_files.items():
             layout = import_csv_layout(path)
@@ -53,7 +58,6 @@ class Level:
                             Tile(pos, [self.visible_sprites], 'floor', surf)
 
                         elif layer == 'blocks':
-                            # Create invisible colliders only
                             Tile(pos, [self.obstacle_sprites], 'invisible')
 
                         elif layer == 'details':
@@ -74,11 +78,25 @@ class Level:
                             except FileNotFoundError:
                                 print(f"[WARNING] Object image not found: {object_path}")
 
+                        elif layer == 'enemies':
+                            try:
+                                monster_type = MONSTER_TYPES[int(cell)]
+                                Enemy(monster_type, pos, [self.visible_sprites, self.enemy_sprites], self.obstacle_sprites)
+                            except (IndexError, ValueError):
+                                print(f"[WARNING] Invalid enemy spawn index '{cell}' at position {pos}")
 
     def run(self):
-        self.visible_sprites.update()
+        for sprite in self.visible_sprites:
+            if hasattr(sprite, 'update'):
+                if getattr(sprite, 'sprite_type', None) == 'enemy':
+                    sprite.update(self.player)
+                else:
+                    sprite.update()
         self.visible_sprites.custom_draw()
         self.ui.display()
+
+
+
 
 
 
