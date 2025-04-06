@@ -14,9 +14,9 @@ HITBOX_OFFSET = {
 # Rendering order: higher numbers draw on top
 Z_INDEX = {
     'floor': 0,
-    'decor': 1,
+    'decor': 0,
     'player': 2,
-    'grass': 3,
+    'grass': 0,
     'object': 4
 }
 

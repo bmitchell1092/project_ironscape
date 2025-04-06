@@ -1,19 +1,12 @@
+# level.py (finalized with correct rendering order and collision)
 import pygame
-import os
 from settings import *
 from tile import Tile
 from player import Player
 from ui import UI
 from camera import YSortCameraGroup
 from support import import_csv_layout, cut_graphics_from_sheet, get_asset_path
-
-def load_individual_tiles(folder_path):
-    tile_dict = {}
-    for filename in os.listdir(folder_path):
-        if filename.endswith(".png"):
-            key = int(filename.replace(".png", ""))
-            tile_dict[key] = pygame.image.load(os.path.join(folder_path, filename)).convert_alpha()
-    return tile_dict
+import os
 
 class Level:
     def __init__(self):
@@ -44,8 +37,6 @@ class Level:
         graphics = {
             'floor': cut_graphics_from_sheet(get_asset_path('graphics', 'tilemap', 'Floor.png'), TILESIZE),
             'details': cut_graphics_from_sheet(get_asset_path('graphics', 'tilemap', 'details.png'), TILESIZE),
-            'grass': load_individual_tiles(get_asset_path('graphics', 'grass')),
-            'objects': load_individual_tiles(get_asset_path('graphics', 'objects')),
         }
 
         for layer, path in layout_files.items():
@@ -56,35 +47,39 @@ class Level:
                         x = col_index * TILESIZE
                         y = row_index * TILESIZE
                         pos = (x, y)
-                        idx = int(cell)
 
                         if layer == 'floor':
-                            surf = graphics['floor'][idx]
+                            surf = graphics['floor'][int(cell)]
                             Tile(pos, [self.visible_sprites], 'floor', surf)
 
                         elif layer == 'blocks':
-                            surf = pygame.Surface((TILESIZE, TILESIZE))
-                            surf.fill((0, 0, 0))
-                            Tile(pos, [self.visible_sprites, self.obstacle_sprites], 'object', surf)
-
-                        elif layer == 'objects':
-                            if idx in graphics['objects']:
-                                surf = graphics['objects'][idx]
-                                Tile(pos, [self.visible_sprites, self.obstacle_sprites], 'object', surf)
-
-                        elif layer == 'grass':
-                            if idx in graphics['grass']:
-                                surf = graphics['grass'][idx]
-                                Tile(pos, [self.visible_sprites, self.obstacle_sprites], 'grass', surf)
+                            # Create invisible colliders only
+                            Tile(pos, [self.obstacle_sprites], 'invisible')
 
                         elif layer == 'details':
-                            surf = graphics['details'][idx]
+                            surf = graphics['details'][int(cell)]
                             Tile(pos, [self.visible_sprites], 'decor', surf)
+
+                        elif layer == 'grass':
+                            grass_path = get_asset_path('graphics', 'grass', f'{cell}.png')
+                            if os.path.exists(grass_path):
+                                surf = pygame.image.load(grass_path).convert_alpha()
+                                Tile(pos, [self.visible_sprites], 'grass', surf)
+
+                        elif layer == 'objects':
+                            try:
+                                object_path = get_asset_path('graphics', 'objects', f'{cell}.png')
+                                surf = pygame.image.load(object_path).convert_alpha()
+                                Tile(pos, [self.visible_sprites, self.obstacle_sprites], 'object', surf)
+                            except FileNotFoundError:
+                                print(f"[WARNING] Object image not found: {object_path}")
+
 
     def run(self):
         self.visible_sprites.update()
         self.visible_sprites.custom_draw()
         self.ui.display()
+
 
 
 
