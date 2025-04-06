@@ -1,30 +1,11 @@
-# level.py (with camera group, z-ordering, and player visibility)
+# level.py (cleaned and corrected rendering logic)
 import pygame
 from settings import *
 from tile import Tile
 from player import Player
 from ui import UI
+from camera import YSortCameraGroup
 from support import import_csv_layout, cut_graphics_from_sheet, get_asset_path
-
-# Camera group to handle rendering and scrolling
-class YSortCameraGroup(pygame.sprite.Group):
-    def __init__(self):
-        super().__init__()
-        self.display_surface = pygame.display.get_surface()
-        self.offset = pygame.math.Vector2()
-
-        # Create camera box centered on screen
-        self.half_w = self.display_surface.get_size()[0] // 2
-        self.half_h = self.display_surface.get_size()[1] // 2
-
-    def custom_draw(self, player):
-        # Update offset based on player position
-        self.offset.x = player.rect.centerx - self.half_w
-        self.offset.y = player.rect.centery - self.half_h
-
-        for sprite in sorted(self.sprites(), key=lambda sprite: sprite.rect.centery):
-            offset_pos = sprite.rect.topleft - self.offset
-            self.display_surface.blit(sprite.image, offset_pos)
 
 class Level:
     def __init__(self):
@@ -35,8 +16,11 @@ class Level:
         self.obstacle_sprites = pygame.sprite.Group()
 
         # Load player
-        self.player = Player((100, 100))
+        self.player = Player((1000, 1000))  # Adjust spawn as needed
         self.visible_sprites.add(self.player)
+        self.visible_sprites.set_camera_target(self.player)
+
+        # UI
         self.ui = UI(self.player)
 
         # Map loading
@@ -65,28 +49,30 @@ class Level:
                     if cell != '-1':
                         x = col_index * TILESIZE
                         y = row_index * TILESIZE
+                        position = (x, y)
 
                         if layer == 'floor':
                             surf = graphics['floor'][int(cell)]
-                            Tile((x, y), [self.visible_sprites], 'floor', surf)
+                            Tile(position, [self.visible_sprites], 'floor', surf)
 
                         elif layer == 'blocks':
                             surf = pygame.Surface((TILESIZE, TILESIZE))
-                            Tile((x, y), [self.visible_sprites, self.obstacle_sprites], 'object', surf)
+                            surf.fill((0, 0, 0))  # temporary black tile
+                            Tile(position, [self.visible_sprites, self.obstacle_sprites], 'object', surf)
 
                         elif layer == 'objects':
                             surf = graphics['objects'][int(cell)]
-                            Tile((x, y), [self.visible_sprites, self.obstacle_sprites], 'object', surf)
+                            Tile(position, [self.visible_sprites, self.obstacle_sprites], 'object', surf)
 
                         elif layer == 'grass':
                             surf = graphics['grass'][int(cell)]
-                            Tile((x, y), [self.visible_sprites], 'grass', surf)
+                            Tile(position, [self.visible_sprites], 'grass', surf)
 
                         elif layer == 'details':
                             surf = graphics['details'][int(cell)]
-                            Tile((x, y), [self.visible_sprites], 'decor', surf)
+                            Tile(position, [self.visible_sprites], 'decor', surf)
 
     def run(self):
         self.visible_sprites.update()
-        self.visible_sprites.custom_draw(self.player)
+        self.visible_sprites.custom_draw()
         self.ui.display()
