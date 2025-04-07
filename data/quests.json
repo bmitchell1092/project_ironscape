@@ -1,25 +1,53 @@
 {
     "last_updated": "2025-04-01",
-    "quests": {
+    "weekly": {
         "Strength": {
-            "description": "Lift 10,000 lbs this week",
+            "description": "Go to the gym at least once this week",
             "completed": true,
-            "xp_reward": 3000
+            "xp_reward": 5000
         },
         "Cooking": {
-            "description": "Prep 5 balanced meals",
-            "completed": false,
+            "description": "Prep 2 balanced meals",
+            "completed": true,
             "xp_reward": 2000
         },
         "Agility": {
-            "description": "Climb 3 sessions or complete one new route",
-            "completed": false,
+            "description": "Climb once this week",
+            "completed": true,
             "xp_reward": 3500
         },
         "Hitpoints": {
-            "description": "Run 15km or 3x cardio workouts",
-            "completed": false,
+            "description": "Run around the block",
+            "completed": true,
             "xp_reward": 4000
         }
+    },
+    "milestones": {
+        "Strength": [
+            {
+                "description": "Reach Strength level 10",
+                "completed": true,
+                "xp_reward": 10000
+            },
+            {
+                "description": "Bench press 135lbs",
+                "completed": true,
+                "xp_reward": 8000
+            }
+        ],
+        "Cooking": [
+            {
+                "description": "Cook 5 different meals",
+                "completed": true,
+                "xp_reward": 6000
+            }
+        ],
+        "Agility": [
+            {
+                "description": "Climb a V4 route",
+                "completed": true,
+                "xp_reward": 7000
+            }
+        ]
     }
 }

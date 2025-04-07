@@ -26,6 +26,13 @@ class Game:
                 # Handle mouse motion for UI skill hover
                 if event.type == pygame.MOUSEMOTION:
                     self.level.ui.handle_mouse_motion(event.pos)
+
+                if event.type == pygame.MOUSEBUTTONUP:
+                    if event.button == 1:
+                        self.level.ui.handle_mouse_release()
+
+                if event.type == pygame.MOUSEWHEEL:
+                        self.level.ui.handle_scroll(-event.y)
    
 
             self.screen.fill('black')

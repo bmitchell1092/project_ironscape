@@ -1,17 +1,17 @@
-# player.py (finalized with idle, movement, and weapon attack animation)
+# player.py (Updated to fix persistent HP and stat recalculation)
+
 import os
 import pygame
 from support import get_asset_path, import_folder
 from skill import Skill, load_skills, save_skills
-from weapon import Weapon  # Make sure this import is present
+from weapon import Weapon
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, obstacle_sprites, sprite_group):
         super().__init__(sprite_group)
         self.sprite_group = sprite_group
-        self.obstacle_sprites = obstacle_sprites
 
-        # Load all animations
+        # Load animations
         self.animations = {
             'up': import_folder(get_asset_path('graphics', 'player', 'up')),
             'down': import_folder(get_asset_path('graphics', 'player', 'down')),
@@ -33,18 +33,18 @@ class Player(pygame.sprite.Sprite):
         self.frame_index = 0
         self.image = self.animations[self.status][self.frame_index]
         self.rect = self.image.get_rect(topleft=pos)
+        self.z_index = 2
 
-        # Movement
         self.direction = pygame.math.Vector2()
-        self.speed = 4
-        self.weapon = None
+        self.obstacle_sprites = obstacle_sprites
 
         # Combat
         self.attacking = False
         self.attack_cooldown = 400
         self.attack_time = None
+        self.weapon = None
 
-        # Load or initialize skills
+        # Load skills
         self.skills = load_skills()
         if not self.skills:
             self.skills = {
@@ -57,13 +57,17 @@ class Player(pygame.sprite.Sprite):
                 "Cooking": Skill("Cooking"),
             }
 
-        self.update_stats()
+        # Initialize stats based on loaded skills
+        self.set_stats_from_skills()
 
-    def update_stats(self):
-        self.max_health = self.skills["Hitpoints"].level
+    def set_stats_from_skills(self):
+        self.max_health = 10 + self.skills["Hitpoints"].level * 2
         self.health = self.max_health
+        self.max_mana = 10 + self.skills["Magic"].level * 2
+        self.mana = self.max_mana
         self.speed = 4 + self.skills["Agility"].level // 10
-        self.damage = 1 + self.skills["Strength"].level // 10
+        self.melee_damage = 1 + self.skills["Strength"].level // 3
+        self.magic_damage = 1 + self.skills["Magic"].level // 3
         self.defense = self.skills["Defense"].level // 10
 
     def input(self):
@@ -96,16 +100,13 @@ class Player(pygame.sprite.Sprite):
         self.status = self.status.split('_')[0] + '_attack'
         self.frame_index = 0
 
-        # Spawn weapon sprite
+        # Trigger weapon animation
         self.weapon = Weapon(self, self.sprite_group)
 
     def cooldowns(self):
         current_time = pygame.time.get_ticks()
         if self.attacking and current_time - self.attack_time >= self.attack_cooldown:
             self.attacking = False
-            if self.weapon:
-                self.weapon.kill()
-                self.weapon = None
 
     def get_status(self):
         if self.attacking:
@@ -144,9 +145,6 @@ class Player(pygame.sprite.Sprite):
             self.frame_index = 0
             if self.attacking:
                 self.attacking = False
-                if self.weapon:
-                    self.weapon.kill()
-                    self.weapon = None
         self.image = animation[int(self.frame_index)]
 
     def update(self):
@@ -155,15 +153,15 @@ class Player(pygame.sprite.Sprite):
         self.move()
         self.get_status()
         self.animate()
-        self.update_stats()
 
     def add_skill_xp(self, skill_name, xp_amount):
         if skill_name in self.skills:
             self.skills[skill_name].add_xp(xp_amount)
-            self.update_stats()
+            self.set_stats_from_skills()  # Only update stats when gaining XP
             save_skills(self.skills)
         else:
             print(f"Skill '{skill_name}' does not exist!")
+
 
 
 

@@ -1,13 +1,14 @@
-# level.py (updated with enemy spawn support from map_Enemies.csv)
+# level.py (updated with enemy spawn support from map_Enemies.csv and combat handler)
 import pygame
+import os
 from settings import *
 from tile import Tile
 from player import Player
 from ui import UI
 from camera import YSortCameraGroup
 from enemy import Enemy
+from combat import CombatHandler
 from support import import_csv_layout, cut_graphics_from_sheet, get_asset_path
-import os
 
 class Level:
     def __init__(self):
@@ -19,13 +20,16 @@ class Level:
         self.enemy_sprites = pygame.sprite.Group()
 
         # Load player
-        self.player = Player((1000, 1000), self.obstacle_sprites,self.visible_sprites)
+        self.player = Player((1000, 1000), self.obstacle_sprites, self.visible_sprites)
         self.visible_sprites.add(self.player)
         self.visible_sprites.set_camera_target(self.player)
         self.ui = UI(self.player)
 
         # Map loading
         self.create_map()
+
+        # Combat handler (connects player attacks to enemies)
+        self.combat_handler = CombatHandler(self.player, self.enemy_sprites)
 
     def create_map(self):
         layout_files = {
@@ -92,8 +96,10 @@ class Level:
                     sprite.update(self.player)
                 else:
                     sprite.update()
+
         self.visible_sprites.custom_draw()
         self.ui.display()
+        self.combat_handler.update()  # Process attacks
 
 
 

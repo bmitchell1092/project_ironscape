@@ -1,4 +1,4 @@
-# enemy.py (IRL stat-based enemies with health bar rendering)
+# enemy.py (IRL stat-based enemies with AI, knockback, and health bar) 
 import pygame
 from settings import monster_data
 from support import import_folder
@@ -9,6 +9,7 @@ class Enemy(pygame.sprite.Sprite):
         self.sprite_type = 'enemy'
         self.monster_type = monster_type
         self.obstacle_sprites = obstacle_sprites
+        self.z_index = 4
 
         # Load animations
         self.animations = {'idle': [], 'move': [], 'attack': []}
@@ -29,6 +30,7 @@ class Enemy(pygame.sprite.Sprite):
         self.max_health = monster_info['health']
         self.exp = monster_info['exp']
         self.speed = monster_info['speed']
+        self.resistance = monster_info['resistance']
         self.attack_damage = monster_info['damage']
         self.attack_radius = monster_info['attack_radius']
         self.notice_radius = monster_info['notice_radius']
@@ -42,9 +44,10 @@ class Enemy(pygame.sprite.Sprite):
         self.hit_time = None
         self.invincibility_duration = 300
 
-        self.display_health_bar = False
-        self.health_bar_duration = 1500  # ms
-        self.health_bar_timer = 0
+        # Knockback
+        self.knockback_velocity = pygame.math.Vector2()
+        self.knockback_duration = 100  # milliseconds
+        self.knockback_timer = 0
 
     def get_player_distance_direction(self, player):
         enemy_vec = pygame.math.Vector2(self.rect.center)
@@ -53,14 +56,15 @@ class Enemy(pygame.sprite.Sprite):
         direction = (player_vec - enemy_vec).normalize() if distance > 0 else pygame.math.Vector2()
         return distance, direction
 
-    def take_damage(self, amount):
+    def take_damage(self, amount, source_position=None):
         if self.vulnerable:
             self.health -= amount
             self.vulnerable = False
             self.hit_time = pygame.time.get_ticks()
-            self.display_health_bar = True
-            self.health_bar_timer = pygame.time.get_ticks()
             print(f"{self.monster_type} took {amount} damage! Remaining HP: {self.health}")
+
+            if source_position:
+                self.apply_knockback(source_position)
 
     def check_death(self):
         if self.health <= 0:
@@ -72,8 +76,48 @@ class Enemy(pygame.sprite.Sprite):
             self.vulnerable = True
         if not self.can_attack and current_time - self.attack_time >= self.attack_cooldown:
             self.can_attack = True
-        if self.display_health_bar and current_time - self.health_bar_timer >= self.health_bar_duration:
-            self.display_health_bar = False
+
+    def apply_knockback(self, source_position):
+        enemy_vec = pygame.math.Vector2(self.rect.center)
+        source_vec = pygame.math.Vector2(source_position)
+
+        try:
+            knockback_direction = (enemy_vec - source_vec).normalize()
+            knockback_distance = 50  # tweakable
+            knockback_vector = knockback_direction * knockback_distance
+            self.rect.center += knockback_vector
+        except ValueError:
+            # Cannot normalize a zero-length vector
+            print(f"[WARNING] Knockback skipped for {self.monster_type} due to zero-length vector.")
+
+
+    def move(self, player):
+        distance, direction = self.get_player_distance_direction(player)
+
+        if distance <= self.attack_radius and self.can_attack:
+            self.attack(player)
+        elif distance <= self.notice_radius:
+            self.status = 'move'
+
+            # Only move if we're not already close enough
+            buffer_zone = 10  # within 10px of attack_radius, stop chasing
+            if distance > self.attack_radius - buffer_zone:
+                self.rect.center += direction * self.speed
+        else:
+            self.status = 'idle'
+
+
+    def attack(self, player):
+        print(f"{self.monster_type} attacks!")
+        self.status = 'attack'
+        if self.can_attack:
+            self.can_attack = False
+            self.attack_time = pygame.time.get_ticks()
+            raw_damage = self.attack_damage
+            mitigation = player.defense
+            mitigated = max(1, raw_damage - mitigation)
+            player.health -= mitigated
+            print(f"{self.monster_type} dealt {mitigated} damage. Player HP: {player.health}")
 
     def animate(self):
         animation = self.animations[self.status]
@@ -82,46 +126,28 @@ class Enemy(pygame.sprite.Sprite):
             self.frame_index = 0
         self.image = animation[int(self.frame_index)]
 
-    def move(self, player):
-        distance, direction = self.get_player_distance_direction(player)
-        if distance <= self.attack_radius and self.can_attack:
-            self.attack(player)
-        elif distance <= self.notice_radius:
-            self.status = 'move'
-            self.rect.center += direction * self.speed
-        else:
-            self.status = 'idle'
+    def draw_health_bar(self, offset):
+        if self.health < self.max_health:
+            display_surface = pygame.display.get_surface()
+            bar_width = self.rect.width
+            bar_height = 5
+            health_ratio = self.health / self.max_health
 
-    def attack(self, player):
-        self.status = 'attack'
-        self.attack_time = pygame.time.get_ticks()
-        self.can_attack = False
+            screen_x = self.rect.left - offset.x
+            screen_y = self.rect.top - offset.y - 10
 
-        # Calculate mitigated damage
-        mitigated = max(0, self.attack_damage - player.defense)
-        player.health -= mitigated
-        print(f"{self.monster_type} attacks! {self.monster_type} dealt {mitigated} damage. Player HP: {player.health}")
+            bg_rect = pygame.Rect(screen_x, screen_y, bar_width, bar_height)
+            fg_rect = pygame.Rect(screen_x, screen_y, bar_width * health_ratio, bar_height)
 
-    def draw_health_bar(self, surface):
-        if self.display_health_bar:
-            ratio = self.health / self.max_health
-            bar_width = 40
-            bar_height = 6
-            bar_x = self.rect.centerx - bar_width // 2
-            bar_y = self.rect.top - 12
-
-            bg_rect = pygame.Rect(bar_x, bar_y, bar_width, bar_height)
-            fg_rect = pygame.Rect(bar_x, bar_y, int(bar_width * ratio), bar_height)
-
-            pygame.draw.rect(surface, 'red', bg_rect)
-            pygame.draw.rect(surface, 'green', fg_rect)
+            pygame.draw.rect(display_surface, 'red', bg_rect)
+            pygame.draw.rect(display_surface, 'green', fg_rect)
 
     def update(self, player):
         self.cooldowns()
         self.move(player)
         self.animate()
         self.check_death()
-        self.draw_health_bar(pygame.display.get_surface())
+
 
 
 

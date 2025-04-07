@@ -26,6 +26,7 @@ class Weapon(pygame.sprite.Sprite):
             self.image = pygame.image.load(weapon_path).convert_alpha()
 
         self.rect = self.image.get_rect()
+        self.z_index = 3  # Ensure weapon is drawn above the player
         self.update_position()
 
         # Optional animation placeholders

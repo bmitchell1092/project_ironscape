@@ -1,5 +1,6 @@
-# combat.py (IRL stat-based combat system with enemy health bars)
+# combat.py (IRL stat-based combat system)
 import pygame
+from settings import weapon_data
 
 class CombatHandler:
     def __init__(self, player, enemies):
@@ -25,20 +26,24 @@ class CombatHandler:
 
         for enemy in self.enemies:
             if attack_rect.colliderect(enemy.rect):
-                if self.player.status == 'magic':
-                    damage = 1 + self.player.skills['Magic'].level // 5
-                else:
-                    damage = self.player.damage  # Scaled from Strength in player.update_stats()
+                if self.player.status.endswith('attack'):
+                    if 'magic' in self.player.status:
+                        base_damage = self.player.magic_damage
+                    else:
+                        base_damage = self.player.melee_damage
 
-                enemy.take_damage(damage)
-                print(f"{enemy.monster_type} took {damage} damage! Remaining HP: {enemy.health}")
+                    # Get weapon modifier
+                    weapon_info = weapon_data.get(self.player.weapon, {'damage': 0})
+                    weapon_bonus = weapon_info['damage']
 
-                if enemy.health <= 0:
-                    enemy.kill()
-                    print(f"{enemy.monster_type} defeated!")
+                    # Enemy resistance
+                    raw_damage = base_damage + weapon_bonus
+                    final_damage = max(1, int(raw_damage / enemy.resistance**0.75))
 
-                # Show health bar
-                enemy.show_health_bar = True
-                enemy.health_bar_timer = pygame.time.get_ticks()
+                    enemy.take_damage(final_damage, self.player.rect.center)
+                   # enemy.apply_knockback(self.player.rect.center) 
+                    print(f"Player dealt {final_damage} damage to {enemy.monster_type}! Remaining HP: {enemy.health}")
+
+
 
 
