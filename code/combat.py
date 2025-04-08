@@ -1,6 +1,6 @@
 # combat.py (IRL stat-based combat system)
 import pygame
-from settings import weapon_data
+from weapon import weapon_data
 
 class CombatHandler:
     def __init__(self, player, enemies):

@@ -7,6 +7,7 @@ from player import Player
 from ui import UI
 from camera import YSortCameraGroup
 from enemy import Enemy
+from enemy import monster_data
 from combat import CombatHandler
 from support import import_csv_layout, cut_graphics_from_sheet, get_asset_path
 

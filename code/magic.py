@@ -2,6 +2,11 @@ import pygame
 from settings import *
 from random import randint
 
+# magic
+magic_data = {
+	'flame': {'damage': 5,'cost': 20,'graphic':'graphics/particles/flame/fire.png'},
+	'heal' : {'damage': 20,'cost': 10,'graphic':'graphics/particles/heal/heal.png'}}
+
 class MagicPlayer:
 	def __init__(self,animation_player):
 		self.animation_player = animation_player

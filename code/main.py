@@ -35,7 +35,7 @@ class Game:
                         self.level.ui.handle_scroll(-event.y)
    
 
-            self.screen.fill('black')
+            #self.screen.fill('black')
             self.level.run()
             pygame.display.update()
             self.clock.tick(FPS)

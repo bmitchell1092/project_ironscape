@@ -3,6 +3,14 @@ import pygame
 import os
 from support import get_asset_path
 
+# weapons 
+weapon_data = {
+	'sword': {'cooldown': 100, 'damage': 15,'graphic':'graphics/weapons/sword/full.png'},
+	'lance': {'cooldown': 400, 'damage': 70,'graphic':'graphics/weapons/lance/full.png'},
+	'axe': {'cooldown': 300, 'damage': 30, 'graphic':'graphics/weapons/axe/full.png'},
+	'rapier':{'cooldown': 50, 'damage': 10, 'graphic':'graphics/weapons/rapier/full.png'},
+	'sai':{'cooldown': 80, 'damage': 10, 'graphic':'graphics/weapons/sai/full.png'}}
+
 class Weapon(pygame.sprite.Sprite):
     def __init__(self, player, groups):
         super().__init__(groups)
