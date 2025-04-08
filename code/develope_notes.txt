@@ -1,0 +1,100 @@
+Things I want to add to my game
+
+Major Features
+- Equipment slots and items
+- Item drops and pick up from monsters
+    - interacting with the game world to find new items (how to interact)
+- Magic book
+    - Containing spell icons at the top and a description box (hover) at the bottom. 
+    - Divided into combat, utility, and teleportation. Combat has heal and damage spells
+    - Clicking a spell sets it active for use. Only 1 heal spell and 1 combat spell can be active at a time
+
+Combat
+- Various combat spells, teleportation spells, and utility spells
+    - Spells should track nearest enemy when casted, move across the screen, and hit
+- Hitsplats with numbers. Damage calculated from a combination of strength bonus and strength level. Weapon and armor can give str bonus. 
+- Method to calculate random hit chance and damage numbers. Hit chance should be modified by the weapon that is being used /wielded. Better weapons have higher accuracy.
+- Accuracy rolls against enemies stat (avoidance) or maybe speed. 
+- More combat animations and special effects 
+- Spells to cure status effects
+- DMG spells used by pressing E
+- HEAL spells used by pressing Q
+- Attack with spacebar
+- Weapon ranges (spear, sword, etc)
+
+Enemy AI
+- Pathing patrol (return to where they came from after 10 seconds). 
+- They should have collision with objects and each other. 
+- Damage type modifiers or effects on the player (i.e., burn, poison, stun, freeze, slow, blind)
+
+Potion expansion
+- Potions to heal or address status effects
+
+
+Inventory
+- drag and drop into different slots for management
+- right click menu for drop, use, or examine
+
+Chat box/ log
+- Some sort of log that spits out print commands.
+- Can also type and have what you say appear in the chat. This would allow developers to have some commands
+
+
+Movement
+- Basic movement is w s a d, and shift will become Sprint (this will just increase player speed by 50% while held).
+- This takes up energy from the energy bar. Energy scales from agility. There will also be energy potions. 
+
+Skills
+- Add in farming and smithing
+- Re-order the skills appropriately
+
+- Smithing
+    - Used to smith new weapons and armor
+    - Items required from quests and monster drops
+    - Smithing is performed at an ancient furnance located in each level. 
+
+- Herblore
+    - Potion mixing (done in inventory)
+    - weak Mana potion, Mana potion, Strong mana potion
+    - 
+
+- Farming
+    - Able to harvest berries, flowers, and fruit for potion mixing
+
+- agility
+    - Used to calculate total energy and energt drain while sprinting
+    
+
+
+
+Storage system
+- Stash system 
+
+
+Core Progression Gameplay loop
+- Area-based linear Progression
+- Each area has unique mobs, items, quests, and a boss. 
+- Killing the boss creates a checkpoint in the players data
+- Killing the boss grants access to the next area
+
+
+Death mechanics
+- Dying drops all of your items (quest items, food, potions, armour, etc)
+- You'll spawn back in the same area checkpoint. You'll have to re-gather supplies to fight the boss
+
+Design philisophy
+- You should be able to beat the game (endgame boss) with ~80 base stats
+
+
+Bosses and mini-Bosses
+- drops uniques and high level gear
+
+
+Tutorial 
+- Customized to the player's interests for each skill. 
+
+
+
+
+
+ 

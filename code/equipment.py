@@ -29,7 +29,7 @@ class Equipment:
         with open(self.path, "w") as file:
             json.dump(self.slots, file, indent=4)
 
-    def get_equipped_item(self, slot):
+    def get_equipped_items(self, slot):
         return self.slots.get(slot)
 
     def equip_item(self, slot, item_id):

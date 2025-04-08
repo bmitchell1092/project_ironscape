@@ -23,9 +23,11 @@ class UI:
         }
 
         self.equipment_slots = {
-            "Head": (0, 0), "Cape": (0, 1), "Shield": (0, 2),
-            "Weapon": (1, 0), "Body": (1, 1), "Ring": (1, 2),
-            "Feet": (2, 0), "Legs": (2, 1), "Neck": (2, 2)
+            "Head": (0, 1),
+            "Cape": (1, 0), "Neck": (1, 1), "Trinket": (1, 2),
+            "Weapon": (2, 0), "Body": (2, 1), "Shield": (2, 2),
+            "Legs": (3, 1),
+            "Hands": (4, 0), "Feet": (4, 1), "Ring": (4, 2)
         }
         self.equipment_slot_rects = {}
 
@@ -231,23 +233,45 @@ class UI:
         spacing = 10
         slot_size = 40
 
+        # Draw equipment slot icons
+        self.equipment_slot_rects = {}
         for name, (row, col) in self.equipment_slots.items():
-            icon = pygame.transform.scale(self.equipment_icons[name], (slot_size, slot_size))
             slot_x = start_x + col * (slot_size + spacing)
             slot_y = start_y + row * (slot_size + spacing)
-            rect = self.display_surface.blit(icon, (slot_x, slot_y))
             self.equipment_slot_rects[name] = pygame.Rect(slot_x, slot_y, slot_size, slot_size)
 
-            item_id = self.equipment.get_equipped_item(name)
-            if item_id is not None:
+            icon = pygame.transform.scale(self.equipment_icons[name], (slot_size, slot_size))
+            self.display_surface.blit(icon, (slot_x, slot_y))
+
+            # Draw equipped item if present
+            item_id = self.equipment.get_equipped_items(name)
+            if item_id:
                 if item_id not in self.item_icons:
                     path = get_item_image_path(item_id)
                     if os.path.exists(path):
                         self.item_icons[item_id] = pygame.image.load(path).convert_alpha()
-                image = pygame.transform.scale(
-                    self.item_icons[item_id], (slot_size - 4, slot_size - 4)
-                )
-                self.display_surface.blit(image, (slot_x + 2, slot_y + 2))
+                if item_id in self.item_icons:
+                    image = pygame.transform.scale(self.item_icons[item_id], (slot_size - 4, slot_size - 4))
+                    self.display_surface.blit(image, (slot_x + 2, slot_y + 2))
+
+        # ---- Draw stat bonuses ----
+        total_str, total_def, total_mag, total_acc = self.get_total_equipment_bonuses()
+
+        stat_x = start_x + 3 * (slot_size + spacing) + 20
+        stat_y = start_y
+
+        headers = [("Attack", total_acc), ("Defense", total_def), ("Magic", total_mag)]
+        for header, value in headers:
+            header_text = self.large_font.render(header, True, (255, 255, 0))
+            bonus_text = self.font.render(f"+{value}", True, (200, 200, 200))
+            self.display_surface.blit(header_text, (stat_x, stat_y))
+            self.display_surface.blit(bonus_text, (stat_x, stat_y + 28))
+            stat_y += 70
+
+        # Strength bonus at the bottom
+        str_text = self.font.render(f"Strength Bonus: +{total_str}", True, (255, 255, 0))
+        self.display_surface.blit(str_text, (stat_x, stat_y + 10))
+
 
         # Draw placeholder bonuses
         bonus_x = start_x + 3 * (slot_size + spacing) + 10
@@ -257,6 +281,23 @@ class UI:
             text = self.font.render(bonus, True, (255, 255, 0))
             self.display_surface.blit(text, (bonus_x, bonus_y))
             bonus_y += 40
+
+    def get_total_equipment_bonuses(self):
+        total_acc = 0
+        total_str = 0
+        total_def = 0
+        total_mag = 0
+
+        for slot, item_id in self.equipment.slots.items():
+            if item_id is not None:
+                item = get_item_data(item_id)
+                if item:
+                    total_acc += item.get("accuracy", 0)
+                    total_str += item.get("strength", 0)
+                    total_def += item.get("defense", 0)
+                    total_mag += item.get("magic", 0)
+
+        return total_acc, total_str, total_def, total_mag        
 
     def draw_placeholder_panel(self, x, y):
         msg = f"[{self.active_tab} tab coming soon]"
@@ -275,8 +316,18 @@ class UI:
                 if rect.collidepoint(mouse_pos):
                     item = self.inventory.get_item_at_index(i)
                     if item is not None:
-                        self.inventory.use_item(i, self.player)
-                    return  # prevent clicks falling through to quest logic
+                        item_data = get_item_data(item["id"])
+                        if item_data["type"] in ["weapon", "armor"]:
+                            slot = item_data["slot"]
+                            if slot:
+                                existing = self.equipment.get_equipped_items(slot)
+                                if existing:
+                                    self.inventory.add_item(existing)
+                                self.equipment.equip_item(slot, item["id"])
+                                self.inventory.remove_item(i)
+                        else:
+                            self.inventory.use_item(i, self.player)
+                    return
 
         # Quest log click handling
         if self.active_tab == "Quests":
@@ -303,6 +354,15 @@ class UI:
                         self.player.add_skill_xp(skill, xp)
                         break
                     y_offset += 24
+
+        if self.active_tab == "Equipment":
+            for slot, rect in self.equipment_slot_rects.items():
+                if rect.collidepoint(mouse_pos):
+                    item_id = self.equipment.get_equipped_items(slot)
+                    if item_id:
+                        if self.inventory.add_item(item_id):
+                            self.equipment.unequip_item(slot)
+                    return
 
 
     def handle_mouse_release(self):

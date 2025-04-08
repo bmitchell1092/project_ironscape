@@ -1,12 +1,12 @@
 {
-  "Head": 2002,
-  "Cape": null,
-  "Neck": null,
-  "Weapon": null,
-  "Body": 2003,
-  "Shield": null,
-  "Legs": 2001,
-  "Hands": null,
-  "Feet": null,
-  "Ring": null
+    "Head": null,
+    "Cape": null,
+    "Neck": null,
+    "Weapon": null,
+    "Body": 2003,
+    "Shield": null,
+    "Legs": 2001,
+    "Hands": null,
+    "Feet": null,
+    "Ring": null
 }
