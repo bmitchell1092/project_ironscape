@@ -1,7 +1,13 @@
 Things I want to add to my game
 
+
+
+UI / mechanics
+- Hover text and examine feature
+- Tooltips for equipment bonuses
+- Weapon attack should depend on actual weapon equipped. If no weapon is equipped, the player will attack wih fists. As of now, this is not the case. In weapon.py, hitting spacebar spawns sword animations and damage is calculated based on weapon type, indepedent of what is equipped - this is the last remnant of the old code system. 
+
 Major Features
-- Equipment slots and items
 - Item drops and pick up from monsters
     - interacting with the game world to find new items (how to interact)
 - Magic book
@@ -48,7 +54,7 @@ Skills
 - Add in farming and smithing
 - Re-order the skills appropriately
 
-- Smithing
+- Smithing / crafting
     - Used to smith new weapons and armor
     - Items required from quests and monster drops
     - Smithing is performed at an ancient furnance located in each level. 
@@ -68,7 +74,7 @@ Skills
 
 
 Storage system
-- Stash system 
+- Stash to store more items (secondary inventory)
 
 
 Core Progression Gameplay loop
