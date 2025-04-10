@@ -3,28 +3,37 @@
         "name": "Strength",
         "xp": 96000
     },
-    "Defense": {
-        "name": "Defense",
-        "xp": 13000000
-    },
     "Hitpoints": {
         "name": "Hitpoints",
         "xp": 33000
     },
-    "Magic": {
-        "name": "Magic",
-        "xp": 0
+    "Smithing": {
+        "name": "Smithing",
+        "xp": 22043
+    },
+    "Defense": {
+        "name": "Defense",
+        "xp": 130004200
     },
     "Agility": {
         "name": "Agility",
         "xp": 5017500
     },
-    "Herblore": {
-        "name": "Herblore",
-        "xp": 0
-    },
     "Cooking": {
         "name": "Cooking",
-        "xp": 22000
+        "xp": 244234
+    },
+    "Magic": {
+        "name": "Magic",
+        "xp": 2353252
+    },
+    "Herblore": {
+        "name": "Herblore",
+        "xp": 2353252
+    },
+    "Farming": {
+        "name": "Farming",
+        "xp": 2353252
     }
 }
+

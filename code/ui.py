@@ -19,15 +19,14 @@ class UI:
 
         self.skill_icons = {
             name: pygame.image.load(get_asset_path("graphics", "icons", f"{name.lower()}.png")).convert_alpha()
-            for name in ["Strength", "Defense", "Hitpoints", "Magic", "Agility", "Herblore", "Cooking"]
+            for name in ["Strength", "Defense", "Hitpoints", "Magic", "Agility", "Herblore", "Cooking", "Smithing", "Farming"]
         }
 
         self.equipment_slots = {
             "Head": (0, 1),
-            "Cape": (1, 0), "Neck": (1, 1), "Trinket": (1, 2),
-            "Weapon": (2, 0), "Body": (2, 1), "Shield": (2, 2),
-            "Legs": (3, 1),
-            "Hands": (4, 0), "Feet": (4, 1), "Ring": (4, 2)
+            "Cape": (1, 0), "Body": (1, 1), "Neck": (1, 2),
+            "Weapon": (2, 0), "Legs": (2, 1), "Shield": (2, 2),
+            "Hands": (3, 0), "Feet": (3, 1), "Ring": (3, 2),
         }
         self.equipment_slot_rects = {}
 
@@ -38,15 +37,15 @@ class UI:
 
         self.item_icons = {}
 
-        self.icon_size = 40
-        self.padding_x = 20
+        self.icon_size = 35
+        self.padding_x = 25
         self.padding_y = 10
         self.columns = 3
         self.bg_color = (20, 20, 20)
         self.bg_alpha = 220
         self.hovered_skill = None
 
-        self.tabs = ["Skills", "Quests", "Inventory", "Equipment", "Settings"]
+        self.tabs = ["Skills", "Quests", "Inventory", "Equipment", "Spellbook"]
         self.active_tab = "Skills"
         self.tab_icons = {
             name: pygame.image.load(get_asset_path("graphics", "icons", f"{name.lower()}_tab.png")).convert_alpha()
@@ -77,6 +76,14 @@ class UI:
         self.draw_health_bar()
         self.draw_mana_bar()
         self.draw_overlay()
+        self.draw_player_position()
+
+    def draw_player_position(self):
+        x, y = int(self.player.rect.centerx), int(self.player.rect.centery)
+        pos_text = f"X: {x}  Y: {y}"
+        text_surf = self.font.render(pos_text, True, (255, 255, 255))
+        self.display_surface.blit(text_surf, (10, HEIGHT - 30))  # Bottom-left corner
+
 
     def draw_health_bar(self):
         ratio = self.player.health / self.player.max_health
@@ -89,7 +96,7 @@ class UI:
     def draw_mana_bar(self):
         ratio = self.player.mana / self.player.max_mana if hasattr(self.player, 'mana') else 0.6
         pygame.draw.rect(self.display_surface, UI_BG_COLOR, self.mana_bar_rect)
-        pygame.draw.rect(self.display_surface, ENERGY_COLOR,
+        pygame.draw.rect(self.display_surface, MANA_COLOR,
                          (self.mana_bar_rect.x, self.mana_bar_rect.y,
                           self.mana_bar_rect.width * ratio, self.mana_bar_rect.height))
         pygame.draw.rect(self.display_surface, TEXT_COLOR, self.mana_bar_rect, 2)
@@ -110,7 +117,7 @@ class UI:
         pygame.draw.line(surface, (100, 100, 100), (x + 10, y + 50), (x + width - 10, y + 50), 2)
 
         if self.active_tab == "Skills":
-            self.draw_skills_grid(x, y + 60)
+            self.draw_skills_grid(x + 4, y + 65)
         elif self.active_tab == "Inventory":
             self.draw_inventory_grid()
         elif self.active_tab == "Quests":
@@ -140,6 +147,7 @@ class UI:
         skills = list(self.player.skills.items())[:9]
         self.skill_icon_rects.clear()
 
+        # Draw skill icons and levels
         for idx, (name, skill) in enumerate(skills):
             row = idx // self.columns
             col = idx % self.columns
@@ -148,25 +156,38 @@ class UI:
             icon = pygame.transform.scale(self.skill_icons[name], (self.icon_size, self.icon_size))
             rect = self.display_surface.blit(icon, (icon_x, icon_y))
             self.skill_icon_rects[name] = rect
+
             level = self.large_font.render(str(skill.level), True, (255, 255, 255))
-            level_rect = level.get_rect(midleft=(icon_x + self.icon_size + 6, icon_y + self.icon_size // 2))
+            level_rect = level.get_rect(midleft=(icon_x + self.icon_size + 8, icon_y + self.icon_size // 2))
             self.display_surface.blit(level, level_rect)
 
-        hover_box = pygame.Rect(x + 10, y + 180, 280, 30)
-        pygame.draw.rect(self.display_surface, (30, 30, 30), hover_box, border_radius=6)
+        # Draw hover box
+        hover_box_height = 70
+        hover_box = pygame.Rect(x + 15, y + 155, 255, hover_box_height)
+        pygame.draw.rect(self.display_surface, (30, 30, 30), hover_box, border_radius=8)
+
+        # Calculate hover text
         if self.hovered_skill:
             skill = self.player.skills[self.hovered_skill]
             next_level_xp = skill.get_next_level_xp()
-            exp_text = f"{self.hovered_skill}: Exp {skill.xp} / {next_level_xp}"
+            exp_line = f"Exp {skill.xp}  Next Lvl: {next_level_xp}"
         else:
-            exp_text = "Hover over a skill to see progress"
-        text = self.font.render(exp_text, True, (255, 255, 255))
-        self.display_surface.blit(text, (hover_box.x + 10, hover_box.y + 6))
+            exp_line = "Hover a skill to see experience"
+
+        total_level = sum(s.level for s in self.player.skills.values())
+        total_line = f"Total Level: {total_level}"
+
+        # Render text lines
+        exp_text = self.font.render(exp_line, True, (255, 255, 255))
+        total_text = self.font.render(total_line, True, (255, 255, 255))
+        self.display_surface.blit(exp_text, (hover_box.x + 10, hover_box.y + 8))
+        self.display_surface.blit(total_text, (hover_box.x + 10, hover_box.y + 26))
+
 
     def _generate_inventory_slots(self):
         panel_width = 300
         margin = 10
-        x_start = WIDTH - panel_width - margin + 20
+        x_start = WIDTH - panel_width - margin + 35
         y_start = HEIGHT - 300 - margin + 60
         self.inventory_slots.clear()
         for row in range(self.inv_rows):          # top-to-bottom
@@ -229,7 +250,7 @@ class UI:
 
     def draw_equipment_tab(self, x, y):
         start_x = x + 10
-        start_y = y
+        start_y = y + 15
         spacing = 10
         slot_size = 40
 
@@ -255,32 +276,28 @@ class UI:
                     self.display_surface.blit(image, (slot_x + 2, slot_y + 2))
 
         # ---- Draw stat bonuses ----
-        total_str, total_def, total_mag, total_acc = self.get_total_equipment_bonuses()
+        total_acc, total_str, total_def, total_mag = self.get_total_equipment_bonuses()
 
-        stat_x = start_x + 3 * (slot_size + spacing) + 20
+        stat_x = start_x + 3 * (slot_size + spacing) + 5
         stat_y = start_y
 
-        headers = [("Attack", total_acc), ("Defense", total_def), ("Magic", total_mag)]
+        headers = [("Accuracy", total_acc), ("Strength", total_str), ("Defense", total_def), ("Magic", total_mag)]
         for header, value in headers:
             header_text = self.large_font.render(header, True, (255, 255, 0))
             bonus_text = self.font.render(f"+{value}", True, (200, 200, 200))
             self.display_surface.blit(header_text, (stat_x, stat_y))
             self.display_surface.blit(bonus_text, (stat_x, stat_y + 28))
-            stat_y += 70
-
-        # Strength bonus at the bottom
-        str_text = self.font.render(f"Strength Bonus: +{total_str}", True, (255, 255, 0))
-        self.display_surface.blit(str_text, (stat_x, stat_y + 10))
+            stat_y += 50
 
 
-        # Draw placeholder bonuses
-        bonus_x = start_x + 3 * (slot_size + spacing) + 10
-        bonus_y = start_y + 10
-        bonuses = ["Str bonus", "Def bonus", "Mag Dmg"]
-        for bonus in bonuses:
-            text = self.font.render(bonus, True, (255, 255, 0))
-            self.display_surface.blit(text, (bonus_x, bonus_y))
-            bonus_y += 40
+        # # Draw placeholder bonuses
+        # bonus_x = start_x + 3 * (slot_size + spacing) + 10
+        # bonus_y = start_y + 10
+        # bonuses = ["Str bonus", "Def bonus", "Mag Dmg"]
+        # for bonus in bonuses:
+        #     text = self.font.render(bonus, True, (255, 255, 0))
+        #     self.display_surface.blit(text, (bonus_x, bonus_y))
+        #     bonus_y += 40
 
     def get_total_equipment_bonuses(self):
         total_acc = 0
@@ -316,18 +333,16 @@ class UI:
                 if rect.collidepoint(mouse_pos):
                     item = self.inventory.get_item_at_index(i)
                     if item is not None:
-                        item_data = get_item_data(item["id"])
-                        if item_data["type"] in ["weapon", "armor"]:
-                            slot = item_data["slot"]
-                            if slot:
-                                existing = self.equipment.get_equipped_items(slot)
-                                if existing:
-                                    self.inventory.add_item(existing)
-                                self.equipment.equip_item(slot, item["id"])
-                                self.inventory.remove_item(i)
-                        else:
+                        item_id = item["id"]
+                        item_data = get_item_data(item_id)
+                        if item_data["type"] == "consumable":
                             self.inventory.use_item(i, self.player)
-                    return
+                        elif item_data["type"] in ["weapon", "armor"]:
+                            slot_name = item_data["subtype"].capitalize()
+                            if slot_name in self.equipment.slots and self.equipment.get_equipped_items(slot_name) is None:
+                                self.equipment.equip_item(slot_name, item_id)
+                                self.inventory.remove_item(i)
+                    return  # Stop after handling one item
 
         # Quest log click handling
         if self.active_tab == "Quests":

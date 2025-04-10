@@ -49,19 +49,21 @@ class Player(pygame.sprite.Sprite):
         if not self.skills:
             self.skills = {
                 "Strength": Skill("Strength"),
-                "Defense": Skill("Defense"),
                 "Hitpoints": Skill("Hitpoints"),
-                "Magic": Skill("Magic"),
-                "Agility": Skill("Agility"),
-                "Herblore": Skill("Herblore"),
                 "Cooking": Skill("Cooking"),
+                "Defense": Skill("Defense"),
+                "Agility": Skill("Agility"),
+                "Smithing": Skill("Smithing"),
+                "Magic": Skill("Magic"),
+                "Herblore": Skill("Herblore"),
+                "Farming": Skill("Farming"),
             }
 
         # Initialize stats based on loaded skills
         self.set_stats_from_skills()
 
     def set_stats_from_skills(self):
-        self.max_health = 10 + self.skills["Hitpoints"].level * 2
+        self.max_health = self.skills["Hitpoints"].level 
         self.health = self.max_health
         self.max_mana = 10 + self.skills["Magic"].level * 2
         self.mana = self.max_mana

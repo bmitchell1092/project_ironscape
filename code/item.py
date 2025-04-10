@@ -27,7 +27,7 @@ ITEM_DATA = {
         "accuracy": 0,
         "strength": 0,
         "defense": 5,
-        "magic": -5
+        "magic": 0
     },
     2002: {
         "id": 2002,
@@ -38,7 +38,7 @@ ITEM_DATA = {
         "accuracy": 0,
         "strength": 0,
         "defense": 3,
-        "magic": -3
+        "magic": 0
     },
     2003: {
         "id": 2003,
@@ -49,7 +49,7 @@ ITEM_DATA = {
         "accuracy": 0,
         "strength": 0,
         "defense": 6,
-        "magic": -6
+        "magic": 0
     },
     # Consumable - Food example
     3001: {

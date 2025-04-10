@@ -21,7 +21,7 @@ class Level:
         self.enemy_sprites = pygame.sprite.Group()
 
         # Load player
-        self.player = Player((1000, 1000), self.obstacle_sprites, self.visible_sprites)
+        self.player = Player((1792, 388), self.obstacle_sprites, self.visible_sprites)
         self.visible_sprites.add(self.player)
         self.visible_sprites.set_camera_target(self.player)
         self.ui = UI(self.player)
