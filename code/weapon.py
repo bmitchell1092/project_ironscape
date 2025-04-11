@@ -1,15 +1,8 @@
-# weapon.py (direction-based weapon positioning with x/y offsets)
+# weapon.py (direction-based weapon positioning & animation only)
 import pygame
 import os
 from support import get_asset_path
-
-# weapons 
-weapon_data = {
-	'sword': {'cooldown': 100, 'damage': 15,'graphic':'graphics/weapons/sword/full.png'},
-	'lance': {'cooldown': 400, 'damage': 70,'graphic':'graphics/weapons/lance/full.png'},
-	'axe': {'cooldown': 300, 'damage': 30, 'graphic':'graphics/weapons/axe/full.png'},
-	'rapier':{'cooldown': 50, 'damage': 10, 'graphic':'graphics/weapons/rapier/full.png'},
-	'sai':{'cooldown': 80, 'damage': 10, 'graphic':'graphics/weapons/sai/full.png'}}
+from item import get_item_data
 
 class Weapon(pygame.sprite.Sprite):
     def __init__(self, player, groups):
@@ -17,34 +10,41 @@ class Weapon(pygame.sprite.Sprite):
         self.player = player
         self.direction = player.status.split('_')[0]
 
-        # Per-direction x/y offsets (relative to player center)
-        self.offset_map = {
+        # Offset for weapon position based on facing
+        offset_map = {
             'up': (0, -40),
             'down': (0, 40),
             'left': (-40, 10),
             'right': (40, 10)
         }
 
-        # Load correct weapon image (default: sword)
-        weapon_path = get_asset_path('graphics', 'weapons', 'sword', f'{self.direction}.png')
-        if not os.path.exists(weapon_path):
-            print(f"[ERROR] Weapon image not found: {weapon_path}")
-            self.image = pygame.Surface((32, 32))  # fallback visual
+        self.offset = offset_map.get(self.direction, (0, 0))
+
+        # Determine equipped weapon
+        weapon_id = self.player.equipment.get_equipped_items("Weapon")
+        self.weapon_item = get_item_data(weapon_id) if weapon_id else None
+        self.subtype = self.weapon_item.get("subtype") if self.weapon_item else "sword"
+
+        # Fallback to a default sprite if missing
+        direction_path = get_asset_path("graphics", "weapons", self.subtype, f"{self.direction}.png")
+        if os.path.exists(direction_path):
+            self.image = pygame.image.load(direction_path).convert_alpha()
         else:
-            self.image = pygame.image.load(weapon_path).convert_alpha()
+            print(f"[WARNING] Weapon sprite not found: {direction_path}")
+            self.image = pygame.Surface((32, 32))  # fallback
 
         self.rect = self.image.get_rect()
-        self.z_index = 3  # Ensure weapon is drawn above the player
+        self.z_index = 3
         self.update_position()
 
-        # Optional animation placeholders
+        # Optional animation logic
         self.frame_index = 0
         self.animation_speed = 0.2
-        self.frames = [self.image]
+        self.frames = [self.image]  # Later: allow multiple frames for animation
 
     def update_position(self):
         center_x, center_y = self.player.rect.center
-        offset_x, offset_y = self.offset_map.get(self.direction, (0, 0))
+        offset_x, offset_y = self.offset
         self.rect.center = (center_x + offset_x, center_y + offset_y)
 
     def animate(self):
@@ -57,6 +57,8 @@ class Weapon(pygame.sprite.Sprite):
     def update(self):
         self.animate()
         self.update_position()
+
+
 
 
 

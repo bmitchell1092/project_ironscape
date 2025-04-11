@@ -1,10 +1,11 @@
-# player.py (Updated to fix persistent HP and stat recalculation)
-
 import os
 import pygame
 from support import get_asset_path, import_folder
 from skill import Skill, load_skills, save_skills
 from weapon import Weapon
+from magic import MagicManager
+from equipment import Equipment
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, obstacle_sprites, sprite_group):
@@ -38,6 +39,9 @@ class Player(pygame.sprite.Sprite):
         self.direction = pygame.math.Vector2()
         self.obstacle_sprites = obstacle_sprites
 
+        # Equipment
+        self.equipment = Equipment("data/equipment.json")
+
         # Combat
         self.attacking = False
         self.attack_cooldown = 400
@@ -61,6 +65,11 @@ class Player(pygame.sprite.Sprite):
 
         # Initialize stats based on loaded skills
         self.set_stats_from_skills()
+
+        # Magic
+        self.magic_manager = MagicManager()
+        self.animation_player = None  # Will be assigned externally
+        self.groups = None            # Will be assigned externally
 
     def set_stats_from_skills(self):
         self.max_health = self.skills["Hitpoints"].level 
@@ -91,8 +100,18 @@ class Player(pygame.sprite.Sprite):
                 self.direction.x = 1
                 self.status = 'right'
 
+            # Melee attack input
             if keys[pygame.K_SPACE]:
                 self.attack()
+                print("Space key pressed, attacking!")
+
+            # Magic spell casting inputs
+            if keys[pygame.K_q]:
+                self.magic_manager.cast(self, self.animation_player, self.groups, 'Q')
+            if keys[pygame.K_e]:
+                self.magic_manager.cast(self, self.animation_player, self.groups, 'E')
+            if keys[pygame.K_LCTRL]:
+                self.magic_manager.cast(self, self.animation_player, self.groups, 'LCTRL')
 
     def attack(self):
         self.attacking = True
@@ -163,6 +182,7 @@ class Player(pygame.sprite.Sprite):
             save_skills(self.skills)
         else:
             print(f"Skill '{skill_name}' does not exist!")
+
 
 
 

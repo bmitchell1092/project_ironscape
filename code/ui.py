@@ -6,6 +6,7 @@ from inventory import *
 from consumable import *
 from equipment import Equipment
 from item import get_item_data, get_item_image_path, get_item_type
+from magic import MagicManager
 
 class UI:
     def __init__(self, player):
@@ -36,7 +37,6 @@ class UI:
         }
 
         self.item_icons = {}
-
         self.icon_size = 35
         self.padding_x = 25
         self.padding_y = 10
@@ -125,7 +125,7 @@ class UI:
         elif self.active_tab == "Equipment":
             self.draw_equipment_tab(x + 10, y + 60)
         else:
-            self.draw_placeholder_panel(x, y + 60)
+            self.draw_spellbook_tab(x + 10, y + 60)
 
     def draw_tabs(self, panel_x, panel_y, panel_width):
         tab_width = 40
@@ -289,16 +289,6 @@ class UI:
             self.display_surface.blit(bonus_text, (stat_x, stat_y + 28))
             stat_y += 50
 
-
-        # # Draw placeholder bonuses
-        # bonus_x = start_x + 3 * (slot_size + spacing) + 10
-        # bonus_y = start_y + 10
-        # bonuses = ["Str bonus", "Def bonus", "Mag Dmg"]
-        # for bonus in bonuses:
-        #     text = self.font.render(bonus, True, (255, 255, 0))
-        #     self.display_surface.blit(text, (bonus_x, bonus_y))
-        #     bonus_y += 40
-
     def get_total_equipment_bonuses(self):
         total_acc = 0
         total_str = 0
@@ -314,7 +304,61 @@ class UI:
                     total_def += item.get("defense", 0)
                     total_mag += item.get("magic", 0)
 
-        return total_acc, total_str, total_def, total_mag        
+        return total_acc, total_str, total_def, total_mag      
+    
+    def draw_spellbook_tab(self, x, y):
+        width = 280
+        height = 230
+        tab_rect = pygame.Rect(x, y, width, height)
+
+        # Background and border
+        pygame.draw.rect(self.display_surface, (80, 80, 80), tab_rect)
+        pygame.draw.rect(self.display_surface, (80, 80, 80), tab_rect, 2)
+
+        spacing = 12
+        icon_size = 30
+        font_color = (255, 255, 255)
+        line_color = (100, 100, 100)
+
+        spellbook_data = {
+            'damage': ['flame'],
+            'heal': ['heal'],
+            'utility': ['charge'],
+        }
+
+        self.spell_icons = {}
+        self.spell_icon_rects = {}
+        section_y = y
+
+        for spell_type, spells in spellbook_data.items():
+            # Draw header
+            header = self.large_font.render(spell_type.capitalize(), True, (255, 255, 0))
+            self.display_surface.blit(header, (x + 15, section_y + 5))
+            section_y += header.get_height() + 15
+
+            # Draw section line
+            pygame.draw.line(self.display_surface, line_color, (x + 10, section_y + 38), (x + width - 10, section_y + 38), 2)
+
+            selected_spell = self.player.magic_manager.get_selected_spell(spell_type)
+
+            for i, spell in enumerate(spells):
+                spell_path = get_asset_path("graphics", "icons", f"{spell}.png")
+                if os.path.exists(spell_path):
+                    icon = pygame.image.load(spell_path).convert_alpha()
+                    icon = pygame.transform.scale(icon, (icon_size, icon_size))
+                    icon_x = x + i * (icon_size + spacing) + 12
+                    rect = pygame.Rect(icon_x, section_y, icon_size, icon_size)
+                    self.spell_icons[spell] = icon
+                    self.spell_icon_rects[spell] = rect
+
+                    # Draw icon
+                    self.display_surface.blit(icon, (icon_x, section_y))
+
+                    # Draw highlight if selected
+                    if spell == selected_spell:
+                        pygame.draw.rect(self.display_surface, (255, 255, 0), rect.inflate(4, 4), 2)
+
+            section_y += icon_size + spacing
 
     def draw_placeholder_panel(self, x, y):
         msg = f"[{self.active_tab} tab coming soon]"
@@ -338,11 +382,20 @@ class UI:
                         if item_data["type"] == "consumable":
                             self.inventory.use_item(i, self.player)
                         elif item_data["type"] in ["weapon", "armor"]:
+                            weapon_subtypes = ["sword", "lance", "axe", "rapier", "sai"]
                             slot_name = item_data["subtype"].capitalize()
+
+                            if item_data["type"] == "weapon" and item_data["subtype"] in weapon_subtypes:
+                                slot_name = "Weapon"
+
                             if slot_name in self.equipment.slots and self.equipment.get_equipped_items(slot_name) is None:
+                                print(f"Equipping {item_data['name']} to {slot_name}")
                                 self.equipment.equip_item(slot_name, item_id)
                                 self.inventory.remove_item(i)
-                    return  # Stop after handling one item
+                            else:
+                                print(f"Slot '{slot_name}' is already occupied or invalid.")
+                    return
+                    # Stop after handling one item
 
         # Quest log click handling
         if self.active_tab == "Quests":
@@ -378,6 +431,11 @@ class UI:
                         if self.inventory.add_item(item_id):
                             self.equipment.unequip_item(slot)
                     return
+                
+        if self.active_tab == "Spellbook":
+            for spell, rect in self.spell_icon_rects.items():
+                if rect.collidepoint(mouse_pos):
+                    self.player.magic_manager.select_spell(spell)
 
 
     def handle_mouse_release(self):

@@ -11,6 +11,7 @@ ITEM_DATA = {
         "subtype": "sword",
         "description": "A sturdy iron sword.",
         "damage": 10,
+        "range": 40,
         "cooldown": 500,
         "accuracy": 5,
         "strength": 10,

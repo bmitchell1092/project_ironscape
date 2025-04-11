@@ -1,49 +1,76 @@
-# combat.py (IRL stat-based combat system)
+# combat.py (cleanly routed through equipment and item data)
 import pygame
-from weapon import weapon_data
+from item import get_item_data
+from magic import magic_data
 
 class CombatHandler:
     def __init__(self, player, enemies):
         self.player = player
-        self.enemies = enemies  # A sprite group of Enemy instances
+        self.enemies = enemies
         self.attack_cooldown = 500  # ms
         self.last_attack_time = 0
 
     def update(self):
-        # Called every frame
-        self.check_attacks()
+        self.check_melee_attacks()
+        self.check_magic_attacks()
 
-    def check_attacks(self):
+    def check_melee_attacks(self):
         keys = pygame.key.get_pressed()
         current_time = pygame.time.get_ticks()
 
         if keys[pygame.K_SPACE] and current_time - self.last_attack_time > self.attack_cooldown:
             self.last_attack_time = current_time
-            self.player_attack()
+            self.perform_melee_attack()
 
-    def player_attack(self):
-        attack_rect = self.player.rect.inflate(40, 40)  # Expand for attack range
+    def perform_melee_attack(self):
+        # Pull equipped weapon ID and data
+        weapon_id = self.player.equipment.get_equipped_items("Weapon")
+        weapon_data = get_item_data(weapon_id) if weapon_id else {}
+        weapon_range = weapon_data.get("range", 40)
+        weapon_damage = weapon_data.get("damage", 0)
+
+        # Expand hitbox based on weapon range
+        attack_rect = self.player.rect.inflate(weapon_range, weapon_range)
 
         for enemy in self.enemies:
-            if attack_rect.colliderect(enemy.rect):
-                if self.player.status.endswith('attack'):
-                    if 'magic' in self.player.status:
-                        base_damage = self.player.magic_damage
-                    else:
-                        base_damage = self.player.melee_damage
+            if attack_rect.colliderect(enemy.rect) and self.player.status.endswith('attack'):
+                base_damage = self.player.melee_damage
+                total_damage = base_damage + weapon_damage
+                final_damage = max(1, int(total_damage / enemy.resistance**0.75))
 
-                    # Get weapon modifier
-                    weapon_info = weapon_data.get(self.player.weapon, {'damage': 0})
-                    weapon_bonus = weapon_info['damage']
+                enemy.take_damage(final_damage, self.player.rect.center)
+                print(f"[Melee] {enemy.monster_type} took {final_damage} damage.")
 
-                    # Enemy resistance
-                    raw_damage = base_damage + weapon_bonus
-                    final_damage = max(1, int(raw_damage / enemy.resistance**0.75))
+    def check_magic_attacks(self):
+        spell_name = self.player.magic_manager.get_selected_spell('damage')
+        spell = magic_data.get(spell_name)
 
-                    enemy.take_damage(final_damage, self.player.rect.center)
-                   # enemy.apply_knockback(self.player.rect.center) 
-                    print(f"Player dealt {final_damage} damage to {enemy.monster_type}! Remaining HP: {enemy.health}")
+        if not spell:
+            return
 
+        # Compute flame positions
+        direction = self.get_direction_vector(self.player.status)
+        for i in range(1, 6):
+            offset = direction * i * 64  # TILESIZE
+            flame_pos = pygame.Vector2(self.player.rect.center) + offset
+            flame_hitbox = pygame.Rect(flame_pos.x - 12, flame_pos.y - 12, 24, 24)
 
+            for enemy in self.enemies:
+                if flame_hitbox.colliderect(enemy.rect):
+                    base_damage = self.player.magic_damage
+                    spell_damage = spell.get("potency", 0)
+                    total_damage = base_damage + spell_damage
+                    final_damage = max(1, int(total_damage / enemy.resistance**0.75))
 
+                    enemy.take_damage(final_damage, flame_pos)
+                    print(f"[Magic] {enemy.monster_type} took {final_damage} damage from {spell_name}.")
+
+    def get_direction_vector(self, status):
+        direction = status.split('_')[0]
+        return {
+            'right': pygame.Vector2(1, 0),
+            'left': pygame.Vector2(-1, 0),
+            'up': pygame.Vector2(0, -1),
+            'down': pygame.Vector2(0, 1)
+        }.get(direction, pygame.Vector2(0, 0))
 
