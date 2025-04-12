@@ -351,12 +351,15 @@ class UI:
                     self.spell_icons[spell] = icon
                     self.spell_icon_rects[spell] = rect
 
-                    # Draw icon
-                    self.display_surface.blit(icon, (icon_x, section_y))
-
                     # Draw highlight if selected
                     if spell == selected_spell:
-                        pygame.draw.rect(self.display_surface, (255, 255, 0), rect.inflate(4, 4), 2)
+                        circle_surface = pygame.Surface((icon_size + 8, icon_size + 8), pygame.SRCALPHA)  # slightly larger for padding
+                        circle_center = (icon_size // 2 + 4, icon_size // 2 + 4)
+                        pygame.draw.circle(circle_surface, (255, 255, 100, 100), circle_center, icon_size // 2 + 4)  # RGBA with alpha
+                        self.display_surface.blit(circle_surface, (icon_x - 4, section_y - 4))  # adjust for padding
+                    
+                    # Draw icon
+                    self.display_surface.blit(icon, (icon_x, section_y))
 
             section_y += icon_size + spacing
 

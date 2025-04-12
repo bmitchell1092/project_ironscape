@@ -10,6 +10,7 @@ from enemy import Enemy
 from enemy import monster_data
 from combat import CombatHandler
 from support import import_csv_layout, cut_graphics_from_sheet, get_asset_path
+from particles import AnimationPlayer
 
 class Level:
     def __init__(self):
@@ -20,14 +21,15 @@ class Level:
         self.obstacle_sprites = pygame.sprite.Group()
         self.enemy_sprites = pygame.sprite.Group()
 
+        # Map loading
+        self.create_map()
+
         # Load player
-        self.player = Player((1792, 388), self.obstacle_sprites, self.visible_sprites)
+        self.animation_player = AnimationPlayer()
+        self.player = Player((1792, 388), self.obstacle_sprites, self.visible_sprites, self.animation_player, self.visible_sprites)
         self.visible_sprites.add(self.player)
         self.visible_sprites.set_camera_target(self.player)
         self.ui = UI(self.player)
-
-        # Map loading
-        self.create_map()
 
         # Combat handler (connects player attacks to enemies)
         self.combat_handler = CombatHandler(self.player, self.enemy_sprites)

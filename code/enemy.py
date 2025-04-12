@@ -31,7 +31,7 @@ class Enemy(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(topleft=pos)
         self.hitbox = self.rect.inflate(0, -10)
 
-        # Stats from settings
+        # Stats from monster_data
         monster_info = monster_data[monster_type]
         self.health = monster_info['health']
         self.max_health = monster_info['health']
