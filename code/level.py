@@ -10,6 +10,8 @@ from enemy import Enemy
 from enemy import monster_data
 from combat import CombatHandler
 from support import import_csv_layout, cut_graphics_from_sheet, get_asset_path
+from equipment import Equipment
+
 
 class Level:
     def __init__(self):
@@ -27,18 +29,21 @@ class Level:
         # self.animation_player = AnimationPlayer()
 
         # CHANGED: No longer pass animation_player to Player
+        self.equipment = Equipment()
         self.player = Player(
             (1792, 388),
             self.obstacle_sprites,
             self.visible_sprites,       # sprite_group
-            self.visible_sprites        # groups (if you need the same group)
+            self.visible_sprites,
+            self.equipment        # groups (if you need the same group),          # equipment
         )
         self.visible_sprites.add(self.player)
         self.visible_sprites.set_camera_target(self.player)
-        self.ui = UI(self.player)
+        self.ui = UI(self.player, self.equipment)
 
         # Combat handler (connects player attacks to enemies)
         self.combat_handler = CombatHandler(self.player, self.enemy_sprites)
+        self.player.combat_handler = self.combat_handler
 
     def create_map(self):
         layout_files = {
@@ -107,8 +112,17 @@ class Level:
                     sprite.update()
 
         self.visible_sprites.custom_draw()
+
+        # # Update and draw hitsplats
+        # self.player.hitsplat_group.update()
+        # for sprite in self.player.hitsplat_group:
+        #     if hasattr(sprite, "draw"):
+        #         sprite.draw(self.display_surface)
+
         self.ui.display()
         self.combat_handler.update()  # Process attacks
+
+
 
 
 

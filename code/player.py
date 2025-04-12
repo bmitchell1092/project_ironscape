@@ -5,10 +5,9 @@ from support import get_asset_path, import_folder
 from skill import Skill, load_skills, save_skills
 from melee import Weapon
 from magic import MagicManager
-from equipment import Equipment
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, obstacle_sprites, sprite_group, groups):
+    def __init__(self, pos, obstacle_sprites, sprite_group, groups, equipment):
         super().__init__(sprite_group)
         self.sprite_group = sprite_group
 
@@ -30,7 +29,7 @@ class Player(pygame.sprite.Sprite):
             'right_attack': import_folder(get_asset_path('graphics', 'player', 'right_attack')),
         }
 
-        self.groups = groups  # i.e., the main visible_sprites group
+        self.groups = groups
         self.status = 'down'
         self.frame_index = 0
         self.image = self.animations[self.status][self.frame_index]
@@ -40,14 +39,15 @@ class Player(pygame.sprite.Sprite):
         self.direction = pygame.math.Vector2()
         self.obstacle_sprites = obstacle_sprites
 
-        # Equipment
-        self.equipment = Equipment("data/equipment.json")
+        # Equipment (shared instance)
+        self.equipment = equipment
 
         # Combat
         self.attacking = False
         self.attack_cooldown = 400
         self.attack_time = None
         self.weapon = None
+        self.combat_handler = None  # will be assigned externally
 
         # Load skills
         self.skills = load_skills()
@@ -67,7 +67,6 @@ class Player(pygame.sprite.Sprite):
 
         # Initialize the MagicManager
         self.magic_manager = MagicManager()
-        # NEW: load magic frames now that display is set up
         self.magic_manager.load_assets()
 
     def set_stats_from_skills(self):
@@ -98,16 +97,15 @@ class Player(pygame.sprite.Sprite):
                 self.direction.x = 1
                 self.status = 'right'
 
-            # Melee attack
             if keys[pygame.K_SPACE]:
                 self.attack()
                 print("Space key pressed, attacking!")
 
-            # Magic casting
             if keys[pygame.K_q]:
                 self.magic_manager.cast(self, self.groups, 'Q')
-            if keys[pygame.K_e]:
-                self.magic_manager.cast(self, self.groups, 'E')
+            if keys[pygame.K_e] and self.combat_handler:          
+                print("Casting flame spell via magic manager")
+                self.combat_handler.cast_flame_spell()
             if keys[pygame.K_LCTRL]:
                 self.magic_manager.cast(self, self.groups, 'LCTRL')
 
@@ -119,9 +117,14 @@ class Player(pygame.sprite.Sprite):
         self.status = self.status.split('_')[0] + '_attack'
         self.frame_index = 0
 
+        if self.weapon:
+            self.weapon.kill()
+
         weapon_id = self.equipment.get_equipped_items("Weapon")
         if weapon_id:
             self.weapon = Weapon(self, self.sprite_group)
+        else:
+            self.weapon = None
 
     def cooldowns(self):
         current_time = pygame.time.get_ticks()
@@ -137,7 +140,6 @@ class Player(pygame.sprite.Sprite):
     def move(self):
         if self.direction.magnitude() != 0:
             self.direction = self.direction.normalize()
-
         self.rect.x += self.direction.x * self.speed
         self.collision('horizontal')
         self.rect.y += self.direction.y * self.speed
@@ -159,7 +161,7 @@ class Player(pygame.sprite.Sprite):
 
     def animate(self):
         animation = self.animations[self.status]
-        self.frame_index += 0.15
+        self.frame_index += 0.05
 
         if self.frame_index >= len(animation):
             self.frame_index = 0
@@ -185,6 +187,8 @@ class Player(pygame.sprite.Sprite):
             save_skills(self.skills)
         else:
             print(f"Skill '{skill_name}' does not exist!")
+
+
 
 
 

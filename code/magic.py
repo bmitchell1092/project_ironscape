@@ -13,6 +13,7 @@ class SpellEffect(pygame.sprite.Sprite):
         self.image = self.frames[int(self.frame_index)]
         self.rect = self.image.get_rect(center=pos)
         self.animation_speed = 0.15
+        self.z_index = 3
 
     def update(self, *args, **kwargs):
         self.frame_index += self.animation_speed
@@ -54,7 +55,7 @@ class MagicPlayer:
                 x = player.rect.centerx + offset.x + randint(-TILESIZE//3, TILESIZE//3)
                 y = player.rect.centery + offset.y + randint(-TILESIZE//3, TILESIZE//3)
                 if frames_flame:
-                    SpellEffect((x, y), frames_flame, [groups])
+                    SpellEffect((x, y), frames_flame, groups)
 
     def charge(self, player, potency, cost, groups):
         if player.mana >= cost:
@@ -105,6 +106,7 @@ class MagicManager:
         return self.magic_data.get(spell_name, {})
 
     def cast(self, player, groups, key):
+        print(f"Attempting to cast: {key}")
         key_map = {'E': 'damage', 'Q': 'heal', 'LCTRL': 'utility'}
         spell_type = key_map.get(key)
         if not spell_type:
