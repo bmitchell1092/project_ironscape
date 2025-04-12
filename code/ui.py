@@ -9,9 +9,10 @@ from item import get_item_data, get_item_image_path, get_item_type
 from magic import MagicManager
 
 class UI:
-    def __init__(self, player):
+    def __init__(self, player, equipment):
         self.display_surface = pygame.display.get_surface()
         self.player = player
+        self.equipment = equipment
         self.font = pygame.font.Font(None, 24)
         self.large_font = pygame.font.Font(None, 28)
 
@@ -64,7 +65,6 @@ class UI:
 
         self.quest_log = QuestLog("data/quests.json")
         self.inventory = Inventory("data/inventory.json")
-        self.equipment = Equipment("data/equipment.json")
 
         self.quest_scroll_offset = 0
         self.quest_scroll_speed = 20
@@ -394,6 +394,7 @@ class UI:
                             if slot_name in self.equipment.slots and self.equipment.get_equipped_items(slot_name) is None:
                                 print(f"Equipping {item_data['name']} to {slot_name}")
                                 self.equipment.equip_item(slot_name, item_id)
+                                self.equipment.load_equipment()
                                 self.inventory.remove_item(i)
                             else:
                                 print(f"Slot '{slot_name}' is already occupied or invalid.")

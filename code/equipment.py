@@ -41,3 +41,16 @@ class Equipment:
         if slot in SLOT_ORDER:
             self.slots[slot] = None
             self.save_equipment()
+
+    def get_total_bonus(self, bonus_type):
+        """
+        Returns the total bonus from all equipped items of a given type.
+        Example: bonus_type = 'melee' or 'magic' to sum 'melee_bonus' or 'magic_bonus' fields.
+        """
+        total = 0
+        for item_id in self.slots.values():
+            if item_id:
+                item_data = get_item_data(item_id)
+                total += item_data.get(f"{bonus_type}_bonus", 0)
+        return total
+

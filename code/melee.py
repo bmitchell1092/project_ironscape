@@ -1,4 +1,4 @@
-# weapon.py (direction-based weapon positioning & animation only)
+# melee.py
 import pygame
 import os
 from support import get_asset_path, import_folder
@@ -13,12 +13,7 @@ class Weapon(pygame.sprite.Sprite):
         # Determine equipped weapon
         weapon_id = self.player.equipment.get_equipped_items("Weapon")
         self.weapon_item = get_item_data(weapon_id) if weapon_id else None
-        self.subtype = self.weapon_item.get("subtype") if self.weapon_item else None
-
-        # Exit early if no weapon equipped
-        if not self.subtype:
-            self.kill()
-            return
+        self.subtype = self.weapon_item.get("subtype", "unarmed") if self.weapon_item else "unarmed"
 
         # Build path to directional animation folder
         weapon_dir = get_asset_path("graphics", "weapons", self.subtype, self.direction)
@@ -52,13 +47,15 @@ class Weapon(pygame.sprite.Sprite):
     def animate(self):
         self.frame_index += self.animation_speed
         if self.frame_index >= len(self.frames):
-            self.kill()
-        else:
+            self.frame_index = len(self.frames) - 1  # Hold last frame
+        if self.frames:
             self.image = self.frames[int(self.frame_index)]
 
     def update(self):
         self.animate()
         self.update_position()
+
+
 
 
 

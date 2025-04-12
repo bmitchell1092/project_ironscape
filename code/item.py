@@ -18,6 +18,20 @@ ITEM_DATA = {
         "defense": 0,
         "magic": 0
     },
+    1002: {
+        "id": 1001,
+        "name": "Iron Lance",
+        "type": "weapon",
+        "subtype": "lance",
+        "description": "A sturdy iron lance.",
+        "damage": 15,
+        "range": 60,
+        "cooldown": 500,
+        "accuracy": 10,
+        "strength": 15,
+        "defense": 0,
+        "magic": 0
+    },
     # Armor example
     2001: {
         "id": 2001,
