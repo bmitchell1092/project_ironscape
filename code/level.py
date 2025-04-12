@@ -1,4 +1,4 @@
-# level.py (updated with enemy spawn support from map_Enemies.csv and combat handler)
+# level.py
 import pygame
 import os
 from settings import *
@@ -10,7 +10,6 @@ from enemy import Enemy
 from enemy import monster_data
 from combat import CombatHandler
 from support import import_csv_layout, cut_graphics_from_sheet, get_asset_path
-from particles import AnimationPlayer
 
 class Level:
     def __init__(self):
@@ -24,9 +23,16 @@ class Level:
         # Map loading
         self.create_map()
 
-        # Load player
-        self.animation_player = AnimationPlayer()
-        self.player = Player((1792, 388), self.obstacle_sprites, self.visible_sprites, self.animation_player, self.visible_sprites)
+        # CHANGED: Remove AnimationPlayer usage
+        # self.animation_player = AnimationPlayer()
+
+        # CHANGED: No longer pass animation_player to Player
+        self.player = Player(
+            (1792, 388),
+            self.obstacle_sprites,
+            self.visible_sprites,       # sprite_group
+            self.visible_sprites        # groups (if you need the same group)
+        )
         self.visible_sprites.add(self.player)
         self.visible_sprites.set_camera_target(self.player)
         self.ui = UI(self.player)

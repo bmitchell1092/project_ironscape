@@ -1,14 +1,14 @@
+# player.py
 import os
 import pygame
 from support import get_asset_path, import_folder
 from skill import Skill, load_skills, save_skills
-from weapon import Weapon
+from melee import Weapon
 from magic import MagicManager
 from equipment import Equipment
 
-
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, obstacle_sprites, sprite_group, animation_player, groups):
+    def __init__(self, pos, obstacle_sprites, sprite_group, groups):
         super().__init__(sprite_group)
         self.sprite_group = sprite_group
 
@@ -30,9 +30,7 @@ class Player(pygame.sprite.Sprite):
             'right_attack': import_folder(get_asset_path('graphics', 'player', 'right_attack')),
         }
 
-        self.animation_player = animation_player
-        self.groups = groups  # i.e., the visible_sprites group
-
+        self.groups = groups  # i.e., the main visible_sprites group
         self.status = 'down'
         self.frame_index = 0
         self.image = self.animations[self.status][self.frame_index]
@@ -65,15 +63,15 @@ class Player(pygame.sprite.Sprite):
                 "Herblore": Skill("Herblore"),
                 "Farming": Skill("Farming"),
             }
-
-        # Initialize stats based on loaded skills
         self.set_stats_from_skills()
 
-        # Magic
-        self.magic_manager = MagicManager(self.animation_player)
+        # Initialize the MagicManager
+        self.magic_manager = MagicManager()
+        # NEW: load magic frames now that display is set up
+        self.magic_manager.load_assets()
 
     def set_stats_from_skills(self):
-        self.max_health = self.skills["Hitpoints"].level 
+        self.max_health = self.skills["Hitpoints"].level
         self.health = self.max_health
         self.max_mana = 10 + self.skills["Magic"].level * 5
         self.mana = self.max_mana
@@ -86,8 +84,6 @@ class Player(pygame.sprite.Sprite):
         keys = pygame.key.get_pressed()
         self.direction.x = 0
         self.direction.y = 0
-        current_time = pygame.time.get_ticks()
-
         if not self.attacking:
             if keys[pygame.K_UP] or keys[pygame.K_w]:
                 self.direction.y = -1
@@ -102,12 +98,12 @@ class Player(pygame.sprite.Sprite):
                 self.direction.x = 1
                 self.status = 'right'
 
-            # Melee attack input
+            # Melee attack
             if keys[pygame.K_SPACE]:
                 self.attack()
                 print("Space key pressed, attacking!")
 
-            # Magic spell casting inputs
+            # Magic casting
             if keys[pygame.K_q]:
                 self.magic_manager.cast(self, self.groups, 'Q')
             if keys[pygame.K_e]:
@@ -123,7 +119,6 @@ class Player(pygame.sprite.Sprite):
         self.status = self.status.split('_')[0] + '_attack'
         self.frame_index = 0
 
-        # Only trigger weapon animation if weapon equipped
         weapon_id = self.equipment.get_equipped_items("Weapon")
         if weapon_id:
             self.weapon = Weapon(self, self.sprite_group)
@@ -145,7 +140,6 @@ class Player(pygame.sprite.Sprite):
 
         self.rect.x += self.direction.x * self.speed
         self.collision('horizontal')
-
         self.rect.y += self.direction.y * self.speed
         self.collision('vertical')
 
@@ -172,10 +166,9 @@ class Player(pygame.sprite.Sprite):
             if self.attacking:
                 self.attacking = False
                 if self.weapon:
-                    self.weapon.kill()  # remove weapon sprite
+                    self.weapon.kill()
                     self.weapon = None
 
-        # Always update the image
         self.image = animation[int(self.frame_index)]
 
     def update(self):
@@ -188,10 +181,12 @@ class Player(pygame.sprite.Sprite):
     def add_skill_xp(self, skill_name, xp_amount):
         if skill_name in self.skills:
             self.skills[skill_name].add_xp(xp_amount)
-            self.set_stats_from_skills()  # Only update stats when gaining XP
+            self.set_stats_from_skills()
             save_skills(self.skills)
         else:
             print(f"Skill '{skill_name}' does not exist!")
+
+
 
 
 

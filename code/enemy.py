@@ -1,14 +1,14 @@
-# enemy.py (IRL stat-based enemies with AI, knockback, and health bar) 
+# enemy.py
 import pygame
 from support import import_folder
 
-# enemy
 monster_data = {
-	'bamboo': {'health': 70,'exp':120,'damage':6,'attack_type': 'leaf_attack', 'attack_sound':'audio/attack/slash.wav', 'speed': 3, 'resistance': 2, 'attack_radius': 50, 'notice_radius': 300},
+    'bamboo': {'health': 70,'exp':120,'damage':6,'attack_type': 'leaf_attack', 'attack_sound':'audio/attack/slash.wav', 'speed': 3, 'resistance': 2, 'attack_radius': 50, 'notice_radius': 300},
     'chibi': {'health': 100,'exp':3000,'damage':1,'attack_type': 'leaf_attack', 'attack_sound':'audio/attack/slash.wav', 'speed': 4, 'resistance': 2, 'attack_radius': 50, 'notice_radius': 300},
     'raccoon': {'health': 100,'exp':250,'damage':5,'attack_type': 'claw',  'attack_sound':'audio/attack/claw.wav','speed': 1, 'resistance': 4, 'attack_radius': 120, 'notice_radius': 400},
-	'spirit': {'health': 50,'exp':110,'damage':1,'attack_type': 'thunder', 'attack_sound':'audio/attack/fireball.wav', 'speed': 4, 'resistance': 1, 'attack_radius': 60, 'notice_radius': 350},
-    'squid': {'health': 100,'exp':100,'damage':20,'attack_type': 'slash', 'attack_sound':'audio/attack/slash.wav', 'speed': 3, 'resistance': 3, 'attack_radius': 80, 'notice_radius': 360}}
+    'spirit': {'health': 50,'exp':110,'damage':1,'attack_type': 'thunder', 'attack_sound':'audio/attack/fireball.wav', 'speed': 4, 'resistance': 1, 'attack_radius': 60, 'notice_radius': 350},
+    'squid': {'health': 100,'exp':100,'damage':20,'attack_type': 'slash', 'attack_sound':'audio/attack/slash.wav', 'speed': 3, 'resistance': 3, 'attack_radius': 80, 'notice_radius': 360}
+}
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, monster_type, pos, groups, obstacle_sprites):
@@ -94,9 +94,7 @@ class Enemy(pygame.sprite.Sprite):
             knockback_vector = knockback_direction * knockback_distance
             self.rect.center += knockback_vector
         except ValueError:
-            # Cannot normalize a zero-length vector
             print(f"[WARNING] Knockback skipped for {self.monster_type} due to zero-length vector.")
-
 
     def move(self, player):
         distance, direction = self.get_player_distance_direction(player)
@@ -105,14 +103,11 @@ class Enemy(pygame.sprite.Sprite):
             self.attack(player)
         elif distance <= self.notice_radius:
             self.status = 'move'
-
-            # Only move if we're not already close enough
-            buffer_zone = 10  # within 10px of attack_radius, stop chasing
+            buffer_zone = 10
             if distance > self.attack_radius - buffer_zone:
                 self.rect.center += direction * self.speed
         else:
             self.status = 'idle'
-
 
     def attack(self, player):
         print(f"{self.monster_type} attacks!")
@@ -154,6 +149,7 @@ class Enemy(pygame.sprite.Sprite):
         self.move(player)
         self.animate()
         self.check_death()
+
 
 
 

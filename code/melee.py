@@ -1,4 +1,4 @@
-# weapon.py (direction-based weapon positioning & animation only)
+# melee.py
 import pygame
 import os
 from support import get_asset_path, import_folder
@@ -59,6 +59,7 @@ class Weapon(pygame.sprite.Sprite):
     def update(self):
         self.animate()
         self.update_position()
+
 
 
 
