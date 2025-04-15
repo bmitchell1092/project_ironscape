@@ -4,18 +4,19 @@ A prioritized roadmap for implementing core features, systems, and polish, based
 
 ---
 
-## ✅ Phase 1: Core Foundation (High Impact, Low Complexity)
+## ✅ Phase 1: Core Mechanic Blueprints
 
-These will clean up existing systems and lay the groundwork for future polish.
+- Refactor weapon and magic to depend on stats
+- Spell book UI and selection, spell category logic
+- damage hitboxes
+- dodge mechanic (LSHIFT) with invincibility frames
 
-1. **Refactor weapon attacks to depend on equipped weapon**
+1. ~~Refactor weapon attacks to depend on equipped weapon~~
 2. **Add hover text and examine feature**
 3. **Display tooltips for equipment bonuses**
-4. **Reorganize the skills list visually**
-5. **Skills panel:**
-   - Show `EXP: ___`, `EXP to LVL: ___`
-   - Display `Total Level` (sum of all skills)
-6. **Adjust inventory layout to better center tabs visually**
+4. ~~Reorganize the skills list visually~~
+5. ~~Skills panel:~~****~~
+6. ~~Adjust inventory layout to better center tabs visually~~
 
 ---
 
@@ -28,9 +29,6 @@ These will clean up existing systems and lay the groundwork for future polish.
 9.5 Dodge system (double tap w or s to roll). Dodging gives iFrames. 
 10. **Add drag and drop within inventory**
 11. **Right-click menu on inventory items (use, drop, examine)**
-12. **Expand item diversity:**
-    - Add more weapons, armor, consumables
-    - Begin developing unique/pixel art for core items
 
 ---
 
